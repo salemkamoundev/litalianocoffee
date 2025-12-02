@@ -41,7 +41,7 @@ import { RouterLink } from '@angular/router';
     .overlay { position: absolute; inset: 0; background: linear-gradient(45deg, rgba(0,0,0,0.7), rgba(40,20,10,0.5)); }
     .hero-content { position: relative; z-index: 1; padding: 20px; color: white; }
     h1 { font-size: 4.5rem; margin-bottom: 20px; text-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-    .cta-btn { background-color: #d4a373; color: white; padding: 18px 50px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 1.1rem; text-transform: uppercase; transition: 0.3s; box-shadow: 0 10px 30px rgba(212, 163, 115, 0.4); }
+    .cta-btn { background-color: #d4a373; color: white; padding: 18px 50px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 1.1rem; text-transform: uppercase; transition: 0.3s; }
     .cta-btn:hover { background-color: #fff; color: #6f4e37; transform: translateY(-5px); }
     .fade-in { animation: fadeInUp 1s ease-out forwards; opacity: 0; transform: translateY(30px); }
     .fade-in-delay { animation: fadeInUp 1s ease-out 0.3s forwards; opacity: 0; transform: translateY(30px); }
