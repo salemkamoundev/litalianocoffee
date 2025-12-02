@@ -13,9 +13,9 @@
 body, html { margin: 0; padding: 0; font-family: 'Lato', sans-serif; color: var(--text-color); background-color: var(--light-bg); }
 h1, h2, h3, h4, h5, h6 { font-family: 'Playfair Display', serif; margin-bottom: 1rem; }
 button { cursor: pointer; transition: all 0.3s ease; }
-input { outline: none; }
+input, select { outline: none; }
 
-.page-container { padding: 100px 20px 50px; max-width: 1200px; margin: 0 auto; min-height: 80vh; }
+.page-container { padding: 100px 20px 50px; max-width: 1400px; margin: 0 auto; min-height: 80vh; }
 .page-container h1 { font-size: 3rem; color: var(--primary-color); border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; margin-bottom: 30px; }
 
 /* Auth Styles */

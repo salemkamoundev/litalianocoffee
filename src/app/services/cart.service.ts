@@ -54,7 +54,6 @@ export class CartService {
 
   clearCart() { this.cartItems.set([]); this.save(); }
   
-  // La méthode checkout est ici
   async checkout(details: any) {
     if (this.cartItems().length === 0) return;
     const order = { customer: details, items: this.cartItems(), total: this.subTotal(), createdAt: serverTimestamp(), status: 'En cours' };

@@ -4,7 +4,7 @@
 PROJECT_DIR="cafe-ecommerce-app"
 
 echo "==================================================="
-echo "🎨 FINALISATION ULTIME DU TEMPLATE (Mode RAW)"
+echo "🎨 FINALISATION ULTIME DU TEMPLATE (Admin Connecté Firestore)"
 echo "==================================================="
 
 # Vérification si on est dans le dossier ou à l'extérieur
@@ -39,9 +39,9 @@ cat > src/styles.scss <<'EOF'
 body, html { margin: 0; padding: 0; font-family: 'Lato', sans-serif; color: var(--text-color); background-color: var(--light-bg); }
 h1, h2, h3, h4, h5, h6 { font-family: 'Playfair Display', serif; margin-bottom: 1rem; }
 button { cursor: pointer; transition: all 0.3s ease; }
-input { outline: none; }
+input, select { outline: none; }
 
-.page-container { padding: 100px 20px 50px; max-width: 1200px; margin: 0 auto; min-height: 80vh; }
+.page-container { padding: 100px 20px 50px; max-width: 1400px; margin: 0 auto; min-height: 80vh; }
 .page-container h1 { font-size: 3rem; color: var(--primary-color); border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; margin-bottom: 30px; }
 
 /* Auth Styles */
@@ -91,7 +91,7 @@ export class AuthService {
 }
 EOF
 
-# 2.2 CartService (Avec checkout)
+# 2.2 CartService
 cat > src/app/services/cart.service.ts <<'EOF'
 import { Injectable, signal, computed } from '@angular/core';
 import { initializeApp } from "firebase/app";
@@ -149,7 +149,6 @@ export class CartService {
 
   clearCart() { this.cartItems.set([]); this.save(); }
   
-  // La méthode checkout est ici
   async checkout(details: any) {
     if (this.cartItems().length === 0) return;
     const order = { customer: details, items: this.cartItems(), total: this.subTotal(), createdAt: serverTimestamp(), status: 'En cours' };
@@ -175,7 +174,9 @@ import { CartService } from '../../services/cart.service';
   template: `
     <header [class.scrolled]="isScrolled">
       <div class="container">
-        <div class="logo"><span class="brand">L'ITALIANO</span><span class="suffix">COFFEE</span></div>
+        <div class="logo">
+            <span class="brand">L'ITALIANO</span><span class="suffix">COFFEE</span>
+        </div>
         <nav>
           <ul>
             <li><a routerLink="/" fragment="home">Accueil</a></li>
@@ -197,17 +198,18 @@ import { CartService } from '../../services/cart.service';
     </header>
   `,
   styles: [`
-    header { position: fixed; top: 0; width: 100%; z-index: 1000; padding: 20px 0; transition: 0.3s; background: rgba(0,0,0,0.9); }
-    header.scrolled { padding: 10px 0; }
+    header { position: fixed; top: 0; width: 100%; z-index: 1000; padding: 20px 0; transition: 0.3s; background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%); }
+    header.scrolled { padding: 10px 0; background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(10px); box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
     .container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
-    .logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: white; }
-    .suffix { color: #d4a373; }
-    nav ul { list-style: none; display: flex; gap: 20px; margin: 0; padding: 0; align-items: center; }
-    nav a, button { text-decoration: none; color: white; font-size: 0.9rem; text-transform: uppercase; background: none; border: none; cursor: pointer; }
-    .btn-contact { border: 1px solid #d4a373; padding: 8px 15px; border-radius: 20px; }
+    .logo { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 700; color: white; letter-spacing: 2px; }
+    .suffix { color: #d4a373; font-style: italic; }
+    nav ul { list-style: none; display: flex; gap: 25px; margin: 0; padding: 0; align-items: center; }
+    nav a, button { text-decoration: none; color: #eee; font-size: 0.85rem; text-transform: uppercase; font-weight: 500; letter-spacing: 1px; background: none; border: none; cursor: pointer; transition: color 0.3s; }
+    nav a:hover, button:hover { color: #d4a373; }
+    .btn-contact { border: 1px solid #d4a373; padding: 8px 20px; border-radius: 30px; transition: all 0.3s; }
     .btn-contact:hover { background: #d4a373; color: #000; }
     .btn-logout { color: #e74c3c; }
-    .btn-admin { color: #f1c40f; font-weight: bold; }
+    .btn-admin { color: #f1c40f; font-weight: bold; border-bottom: 2px solid #f1c40f; }
     .cart-link { position: relative; padding-right: 20px; }
     .cart-badge { position: absolute; top: -8px; right: 0; background: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; }
   `]
@@ -216,6 +218,7 @@ export class HeaderComponent {
   isScrolled = false;
   auth = inject(AuthService);
   cart = inject(CartService);
+  private router = inject(Router);
 
   @HostListener('window:scroll', []) onWindowScroll() { this.isScrolled = window.scrollY > 50; }
   logout() { this.auth.signOut(); }
@@ -228,8 +231,28 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-footer', standalone: true, imports: [CommonModule],
-  template: `<footer><div class="container"><p>L'Italiano Coffee &copy; 2025.</p></div></footer>`,
-  styles: [`footer { background: #1a1a1a; color: #fff; padding: 40px 0; text-align: center; }`]
+  template: `
+    <footer>
+      <div class="container">
+        <div class="col">
+            <h3>L'Italiano Coffee</h3>
+            <p>Le goût de l'excellence italienne.</p>
+        </div>
+        <div class="col">
+            <h4>Contact</h4>
+            <p>Email: contact@litalianocaffe.tn</p>
+        </div>
+      </div>
+      <div class="bottom"><p>&copy; 2025 L'Italiano Coffee. Tous droits réservés.</p></div>
+    </footer>
+  `,
+  styles: [`
+    footer { background: #111; color: #ccc; padding-top: 60px; font-size: 0.9rem; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px 40px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; }
+    h3 { color: #d4a373; font-size: 1.5rem; margin-bottom: 10px; }
+    h4 { color: #fff; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+    .bottom { background: #000; text-align: center; padding: 20px; color: #555; }
+  `]
 })
 export class FooterComponent {}
 EOF
@@ -239,27 +262,68 @@ cat > src/app/components/home/home.component.ts <<'EOF'
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+
 @Component({
   selector: 'app-home', standalone: true, imports: [CommonModule, RouterLink],
   template: `
+    <!-- Hero Section -->
     <section class="hero">
-      <div class="content">
-        <h1>L'Italiano Coffee</h1><p>Le goût authentique.</p>
-        <a routerLink="/products" class="cta-btn">Découvrir</a>
+      <div class="overlay"></div>
+      <div class="hero-content">
+        <h1 class="fade-in">L'Art du Café Italien</h1>
+        <p class="fade-in-delay">Une expérience sensorielle unique, de la fève à la tasse.</p>
+        <a routerLink="/products" class="cta-btn fade-in-delay-2">Découvrir la Collection</a>
+      </div>
+    </section>
+
+    <!-- Univers Section -->
+    <section class="univers">
+      <div class="container">
+        <h2 class="section-title">Nos Univers</h2>
+        <div class="grid">
+          <div class="category-card" routerLink="/products">
+            <div class="card-bg" style="background-image: url('https://images.unsplash.com/photo-1611854779393-1b2ae563f974?q=80&w=800');"></div>
+            <div class="card-content"><h3>Café en Grains</h3><p>L'arôme pur et intense.</p><span class="explore-link">Explorer →</span></div>
+          </div>
+          <div class="category-card" routerLink="/products">
+            <div class="card-bg" style="background-image: url('https://images.unsplash.com/photo-1621255535941-83c3eb6f07d2?q=80&w=800');"></div>
+            <div class="card-content"><h3>Capsules</h3><p>Compatibilité et goût exceptionnel.</p><span class="explore-link">Explorer →</span></div>
+          </div>
+          <div class="category-card" routerLink="/products">
+            <div class="card-bg" style="background-image: url('https://images.unsplash.com/photo-1517080315877-62f90dc68725?q=80&w=800');"></div>
+            <div class="card-content"><h3>Machines Pro</h3><p>Technologie et design.</p><span class="explore-link">Explorer →</span></div>
+          </div>
+        </div>
       </div>
     </section>
   `,
   styles: [`
-    .hero { height: 90vh; background: url('https://images.unsplash.com/photo-1497935586351-b67a49e012bf?q=80&w=2000') center/cover; display: flex; align-items: center; justify-content: center; text-align: center; color: white; }
-    .content h1 { font-size: 4rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
-    .cta-btn { background: #d4a373; color: white; padding: 15px 40px; border-radius: 30px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 20px; }
+    .hero { height: 100vh; background: url('https://images.unsplash.com/photo-1447933601403-0c6688de566e?q=80&w=2560') center/cover fixed; display: flex; align-items: center; justify-content: center; text-align: center; position: relative; }
+    .overlay { position: absolute; inset: 0; background: linear-gradient(45deg, rgba(0,0,0,0.7), rgba(40,20,10,0.5)); }
+    .hero-content { position: relative; z-index: 1; padding: 20px; color: white; }
+    h1 { font-size: 4.5rem; margin-bottom: 20px; text-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+    .cta-btn { background-color: #d4a373; color: white; padding: 18px 50px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 1.1rem; text-transform: uppercase; transition: 0.3s; box-shadow: 0 10px 30px rgba(212, 163, 115, 0.4); }
+    .cta-btn:hover { background-color: #fff; color: #6f4e37; transform: translateY(-5px); }
+    .fade-in { animation: fadeInUp 1s ease-out forwards; opacity: 0; transform: translateY(30px); }
+    .fade-in-delay { animation: fadeInUp 1s ease-out 0.3s forwards; opacity: 0; transform: translateY(30px); }
+    .fade-in-delay-2 { animation: fadeInUp 1s ease-out 0.6s forwards; opacity: 0; transform: translateY(30px); }
+    @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+    .univers { padding: 100px 0; background-color: #f8f8f8; }
+    .section-title { text-align: center; font-size: 2.5rem; margin-bottom: 60px; color: #2c3e50; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; padding: 0 20px; }
+    .category-card { position: relative; height: 450px; border-radius: 20px; overflow: hidden; cursor: pointer; box-shadow: 0 15px 40px rgba(0,0,0,0.1); transition: transform 0.4s ease; }
+    .category-card:hover { transform: translateY(-10px); }
+    .card-bg { position: absolute; inset: 0; background-size: cover; background-position: center; transition: transform 0.6s ease; }
+    .category-card:hover .card-bg { transform: scale(1.1); }
+    .card-content { position: absolute; bottom: 0; left: 0; width: 100%; padding: 40px 30px; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); color: white; }
+    .explore-link { font-weight: bold; text-transform: uppercase; font-size: 0.8rem; color: #d4a373; }
+    @media (max-width: 768px) { h1 { font-size: 3rem; } .hero { height: 80vh; } }
   `]
 })
 export class HomeComponent {}
 EOF
 
 # 6. Products
-echo "🛍️  Products..."
 cat > src/app/pages/products/products.component.ts <<'EOF'
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -400,9 +464,7 @@ export class ProductDetailComponent implements OnInit {
 }
 EOF
 
-# 8. Auth Components (CORRECTION: Utilisation de ` pour les templates en mode RAW)
-echo "🔑 Auth..."
-
+# 8. Auth
 cat > src/app/pages/login/login.component.ts <<'EOF'
 import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -483,7 +545,6 @@ export class SignupComponent {
 EOF
 
 # 9. Cart
-echo "🛒 Cart..."
 cat > src/app/pages/cart/cart.component.ts <<'EOF'
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -522,8 +583,7 @@ import { CartService } from '../../services/cart.service';
 export class CartComponent { cart = inject(CartService); }
 EOF
 
-# 9.5 Checkout (Page de commande)
-echo "📝 Checkout..."
+# 9.5 Checkout
 cat > src/app/pages/checkout/checkout.component.ts <<'EOF'
 import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -571,7 +631,6 @@ import { Component } from '@angular/core';
 EOF
 
 # 11. Admin (Simplifié)
-echo "🛠️  Admin..."
 cat > src/app/pages/admin/admin.component.ts <<'EOF'
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -593,148 +652,393 @@ import { AuthService } from '../../services/auth.service';
 export class AdminComponent { auth = inject(AuthService); router = inject(Router); }
 EOF
 
+# 12. Composant CRUD Produits (Gestion de l'inventaire) MODERNE AVEC FILTRES ET FIRESTORE
+echo "📝 Création du Composant CRUD Produits MODERNE AVEC FILTRES..."
 cat > src/app/pages/admin/crud-products/crud-products.component.ts <<'EOF'
-import { Component, signal } from '@angular/core';
+import { Component, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-@Component({
-  selector: 'app-crud-products', standalone: true, imports: [CommonModule, FormsModule],
-  template: `
-    <div class="page-container">
-      <h1>Gestion Produits</h1>
-      <button (click)="isAdding.set(true)" style="background:#2ecc71; color:white; padding:10px 20px; border:none; border-radius:5px;">+ Nouveau</button>
-      
-      <div *ngIf="isAdding()" style="background:#fff; padding:20px; margin:20px 0; border:1px solid #ddd;">
-        <form (ngSubmit)="save()">
-            <input placeholder="Nom" [(ngModel)]="form.name" name="name" style="display:block; width:100%; margin-bottom:10px; padding:10px;">
-            <input placeholder="Prix" type="number" [(ngModel)]="form.price" name="price" style="display:block; width:100%; margin-bottom:10px; padding:10px;">
-            <button type="submit" style="background:var(--primary-color); color:white; padding:10px 20px; border:none;">Enregistrer</button>
-            <button type="button" (click)="isAdding.set(false)" style="margin-left:10px;">Annuler</button>
-        </form>
-      </div>
-      <p>Liste des produits (WIP)...</p>
-    </div>
-  `
-})
-export class CrudProductsComponent {
-  isAdding = signal(false);
-  form = { name: '', price: 0 };
-  save() { console.log(this.form); this.isAdding.set(false); }
-}
-EOF
-
-cat > src/app/pages/admin/orders/orders.component.ts <<'EOF'
-import { Component, OnInit, signal, inject } from '@angular/core';
-import { CommonModule, DatePipe, CurrencyPipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, onSnapshot, query, orderBy, doc, updateDoc, Timestamp } from "firebase/firestore";
+import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import { environment } from '../../../../environments/environment';
-
-interface Order {
-  id: string;
-  customer: { name: string; phone: string; address: string };
-  items: any[];
-  total: number;
-  status: string;
-  date: Timestamp;
-}
 
 const app = initializeApp(environment.firebaseConfig);
 const db = getFirestore(app);
 
 @Component({
-  selector: 'app-orders',
+  selector: 'app-crud-products',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePipe, CurrencyPipe],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="page-container">
-      <h1>📦 Gestion des Commandes</h1>
-      
-      <div *ngIf="loading()" class="loading">Chargement des commandes...</div>
-      
-      <div *ngIf="!loading() && orders().length === 0" class="no-orders">
-        Aucune commande trouvée.
+      <div class="header">
+        <div>
+            <h1>Gestion du Catalogue</h1>
+            <p class="subtitle">Gérez vos produits, stocks et prix en un clin d'œil.</p>
+        </div>
+        <button (click)="openForm()" class="btn-add">
+            <span>+</span> Ajouter un produit
+        </button>
       </div>
 
-      <div class="orders-list" *ngIf="orders().length > 0">
-        <div class="order-card" *ngFor="let order of orders()">
-          <div class="order-header">
-            <div>
-                <h3>Commande #{{ order.id | slice:0:8 }}</h3>
-                <span class="date">{{ order.date?.toDate() | date:'medium' }}</span>
+      <!-- Barre d'outils (Recherche & Filtres Avancés) -->
+      <div class="toolbar-stack">
+        <!-- Ligne 1: Recherche globale -->
+        <div class="toolbar-row main-row">
+            <div class="search-wrapper">
+                <span class="search-icon">🔍</span>
+                <input 
+                    type="text" 
+                    placeholder="Rechercher par nom, SKU..." 
+                    [ngModel]="searchTerm()"
+                    (ngModelChange)="searchTerm.set($event)"
+                >
             </div>
-            <div class="status-group">
-                <select [ngModel]="order.status" (ngModelChange)="updateStatus(order.id, $event)" [class]="'status-' + getStatusClass(order.status)">
-                    <option value="En cours">En cours</option>
-                    <option value="Livrée">Livrée</option>
-                    <option value="Annulée">Annulée</option>
+            <div class="stats">
+                <span class="badge">{{ filteredProducts().length }} / {{ products().length }} Produits</span>
+            </div>
+        </div>
+
+        <!-- Ligne 2: Filtres -->
+        <div class="toolbar-row filters-row">
+            <!-- Filtre Catégorie -->
+            <div class="filter-group">
+                <select [ngModel]="filterCategory()" (ngModelChange)="filterCategory.set($event)">
+                    <option value="">Toutes les catégories</option>
+                    @for (cat of categories(); track cat) {
+                        <option [value]="cat">{{ cat }}</option>
+                    }
                 </select>
             </div>
-          </div>
-          
-          <div class="customer-info">
-            <p><strong>Client:</strong> {{ order.customer.name }} | 📞 {{ order.customer.phone }}</p>
-            <p><strong>Adresse:</strong> {{ order.customer.address }}</p>
-          </div>
 
-          <div class="order-items">
-            <div *ngFor="let item of order.items" class="item-row">
-                <span>{{ item.quantity }}x {{ item.name }}</span>
-                <span>{{ (item.price * item.quantity) | number:'1.2-2' }} DT</span>
+            <!-- Filtre Stock -->
+            <div class="filter-group">
+                <select [ngModel]="filterStock()" (ngModelChange)="filterStock.set($event)">
+                    <option value="">Tout état de stock</option>
+                    <option value="in">En stock</option>
+                    <option value="low">Stock faible (< 10)</option>
+                    <option value="out">Rupture</option>
+                </select>
             </div>
-          </div>
 
-          <div class="order-total">
-            Total: {{ order.total | number:'1.2-2' }} DT
-          </div>
+            <!-- Filtre Prix Min -->
+            <div class="filter-group price-filter">
+                <input type="number" placeholder="Min DT" [ngModel]="filterMinPrice()" (ngModelChange)="filterMinPrice.set($event)">
+            </div>
+
+            <!-- Filtre Prix Max -->
+            <div class="filter-group price-filter">
+                <input type="number" placeholder="Max DT" [ngModel]="filterMaxPrice()" (ngModelChange)="filterMaxPrice.set($event)">
+            </div>
+
+            <!-- Reset -->
+            <button (click)="resetFilters()" class="btn-reset" title="Réinitialiser les filtres">↺</button>
         </div>
+      </div>
+      
+      <!-- Grille de Produits -->
+      <div class="product-grid">
+        @for (p of filteredProducts(); track p.id) {
+            <div class="product-card">
+                <div class="card-image" [style.background-image]="'url(' + (p.imageUrl || 'https://placehold.co/300x200/eee/ccc?text=No+Image') + ')'">
+                    <span class="stock-badge" [class.out]="p.stock === 0" [class.low]="p.stock > 0 && p.stock < 10">
+                        {{ p.stock === 0 ? 'Rupture' : (p.stock < 10 ? 'Faible: ' + p.stock : 'Stock: ' + p.stock) }}
+                    </span>
+                </div>
+                <div class="card-details">
+                    <div class="card-header">
+                        <h3>{{ p.name }}</h3>
+                        <span class="category">{{ p.category }}</span>
+                    </div>
+                    <div class="card-footer">
+                        <span class="price">{{ p.price }} DT</span>
+                        <div class="actions">
+                            <button (click)="edit(p)" class="btn-icon edit" title="Modifier">✎</button>
+                            <button (click)="delete(p.id)" class="btn-icon delete" title="Supprimer">🗑</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+      </div>
+
+      <!-- Modal Formulaire (Slide-over) -->
+      <div class="modal-backdrop" *ngIf="showForm()" (click)="closeForm()"></div>
+      <div class="slide-panel" [class.open]="showForm()">
+        <div class="panel-header">
+            <h2>{{ isEditing ? 'Modifier le produit' : 'Nouveau produit' }}</h2>
+            <button (click)="closeForm()" class="btn-close">×</button>
+        </div>
+        
+        <form (ngSubmit)="save()" class="panel-body">
+            <div class="form-group">
+                <label>Nom du produit</label>
+                <input [(ngModel)]="form.name" name="name" placeholder="Ex: Café Arabica" required>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Prix (DT)</label>
+                    <input type="number" [(ngModel)]="form.price" name="price" required>
+                </div>
+                <div class="form-group">
+                    <label>Stock</label>
+                    <input type="number" [(ngModel)]="form.stock" name="stock" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Catégorie</label>
+                <input list="categoryList" [(ngModel)]="form.category" name="cat" placeholder="Sélectionner ou taper...">
+                <datalist id="categoryList">
+                    @for (cat of categories(); track cat) {
+                        <option [value]="cat">
+                    }
+                </datalist>
+            </div>
+
+            <div class="form-group">
+                <label>Image URL</label>
+                <input [(ngModel)]="form.imageUrl" name="img" placeholder="https://...">
+            </div>
+            
+            <div class="preview" *ngIf="form.imageUrl">
+                <label>Aperçu</label>
+                <img [src]="form.imageUrl" alt="Preview">
+            </div>
+
+            <div class="panel-footer">
+                <button type="button" (click)="closeForm()" class="btn-cancel">Annuler</button>
+                <button type="submit" class="btn-save">Enregistrer</button>
+            </div>
+        </form>
       </div>
     </div>
   `,
   styles: [`
-    .order-card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 5px solid var(--accent-color); }
-    .order-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px; }
-    .order-header h3 { margin: 0; color: var(--primary-color); }
-    .date { color: #888; font-size: 0.9rem; }
-    .customer-info { background: #f9f9f9; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 0.95rem; }
-    .customer-info p { margin: 5px 0; }
-    .item-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed #eee; }
-    .order-total { text-align: right; font-size: 1.2rem; font-weight: bold; margin-top: 15px; color: var(--secondary-color); }
+    /* Layout */
+    .page-container { max-width: 1400px; }
+    .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; }
+    .subtitle { color: #666; margin: 5px 0 0; }
     
-    select { padding: 5px 10px; border-radius: 20px; border: 1px solid #ddd; font-weight: bold; cursor: pointer; }
-    .status-warning { background: #fff3cd; color: #856404; } /* En cours */
-    .status-success { background: #d4edda; color: #155724; } /* Livrée */
-    .status-danger { background: #f8d7da; color: #721c24; } /* Annulée */
+    /* Toolbar Stack */
+    .toolbar-stack { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 30px; display: flex; flex-direction: column; gap: 15px; }
     
-    .loading, .no-orders { text-align: center; padding: 40px; font-size: 1.2rem; color: #666; }
+    .toolbar-row { display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: wrap; }
+    
+    .search-wrapper { flex: 1; display: flex; align-items: center; background: #f5f5f5; padding: 10px 15px; border-radius: 8px; transition: all 0.3s; min-width: 250px; }
+    .search-wrapper:focus-within { background: #fff; box-shadow: 0 0 0 2px var(--accent-color); }
+    .search-wrapper input { border: none; background: transparent; margin-left: 10px; width: 100%; font-size: 0.95rem; }
+    
+    .filters-row { padding-top: 15px; border-top: 1px solid #eee; justify-content: flex-start; }
+    .filter-group select, .filter-group input { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; background: #fff; font-size: 0.9rem; }
+    .price-filter input { width: 100px; }
+    
+    .btn-reset { background: #f0f0f0; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+    .btn-reset:hover { background: #e0e0e0; }
+
+    .badge { background: var(--secondary-color); color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; }
+
+    /* Grid */
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+    
+    /* Card */
+    .product-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: transform 0.3s, box-shadow 0.3s; position: relative; border: 1px solid #f0f0f0; }
+    .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+    
+    .card-image { height: 180px; background-size: cover; background-position: center; position: relative; }
+    .stock-badge { position: absolute; top: 10px; right: 10px; background: #2ecc71; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+    .stock-badge.low { background: #f1c40f; color: #333; }
+    .stock-badge.out { background: #e74c3c; }
+
+    .card-details { padding: 20px; }
+    .card-header { margin-bottom: 15px; }
+    .card-header h3 { margin: 0 0 5px; font-size: 1.1rem; color: var(--secondary-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .category { color: #999; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
+    
+    .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+    .price { font-size: 1.2rem; font-weight: 800; color: var(--primary-color); }
+    
+    .actions { display: flex; gap: 8px; opacity: 0.6; transition: opacity 0.3s; }
+    .product-card:hover .actions { opacity: 1; }
+    .btn-icon { width: 32px; height: 32px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+    .edit { background: #e0f2f1; color: #009688; }
+    .edit:hover { background: #009688; color: white; }
+    .delete { background: #ffebee; color: #e53935; }
+    .delete:hover { background: #e53935; color: white; }
+
+    /* Buttons */
+    .btn-add { background: var(--primary-color); color: white; border: none; padding: 12px 25px; border-radius: 30px; font-weight: bold; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 10px rgba(111, 78, 55, 0.3); }
+    .btn-add span { font-size: 1.2rem; line-height: 1; }
+    .btn-add:hover { background: #5a3e2b; transform: translateY(-2px); }
+
+    /* Modal / Slide Panel */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 998; backdrop-filter: blur(2px); }
+    .slide-panel { position: fixed; top: 0; right: -450px; width: 400px; height: 100vh; background: white; z-index: 999; box-shadow: -5px 0 30px rgba(0,0,0,0.1); transition: right 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; flex-direction: column; }
+    .slide-panel.open { right: 0; }
+    
+    .panel-header { padding: 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    .panel-header h2 { margin: 0; font-size: 1.5rem; color: var(--secondary-color); }
+    .btn-close { background: none; border: none; font-size: 2rem; color: #999; cursor: pointer; line-height: 1; }
+    
+    .panel-body { padding: 30px; overflow-y: auto; flex-grow: 1; }
+    .form-group { margin-bottom: 20px; }
+    .form-row { display: flex; gap: 20px; }
+    .form-row .form-group { flex: 1; }
+    
+    label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 0.9rem; }
+    input, select { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s; background: #fafafa; }
+    input:focus, select:focus { border-color: var(--accent-color); background: white; box-shadow: 0 0 0 3px rgba(212, 163, 115, 0.1); }
+    
+    .preview img { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-top: 5px; }
+
+    .panel-footer { padding: 25px; border-top: 1px solid #eee; display: flex; gap: 15px; justify-content: flex-end; background: #fff; }
+    .btn-cancel { background: #f5f5f5; color: #666; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; }
+    .btn-save { background: var(--primary-color); color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; }
   `]
 })
-export class OrdersComponent implements OnInit {
-  orders = signal<Order[]>([]);
-  loading = signal(true);
+export class CrudProductsComponent implements OnInit {
+  products = signal<any[]>([]);
+
+  // --- FILTERS STATE ---
+  searchTerm = signal('');
+  filterCategory = signal('');
+  filterStock = signal(''); // 'in', 'low', 'out'
+  filterMinPrice = signal<number | null>(null);
+  filterMaxPrice = signal<number | null>(null);
+  
+  // UI State
+  showForm = signal(false);
+  isEditing = false;
+  form = { id: '', name: '', price: 0, stock: 0, category: 'Grains', imageUrl: '' };
+
+  // --- COMPUTED ---
+  
+  // Extract unique categories for filter dropdown
+  categories = computed(() => [...new Set(this.products().map(p => p.category).filter(Boolean))].sort());
+
+  // Filter Logic
+  filteredProducts = computed(() => {
+    const term = this.searchTerm().toLowerCase();
+    const cat = this.filterCategory();
+    const stock = this.filterStock();
+    const min = this.filterMinPrice();
+    const max = this.filterMaxPrice();
+
+    return this.products().filter(p => {
+        // 1. Text Search
+        const matchesTerm = p.name.toLowerCase().includes(term);
+        
+        // 2. Category
+        const matchesCat = cat ? p.category === cat : true;
+        
+        // 3. Stock
+        let matchesStock = true;
+        if (stock === 'out') matchesStock = p.stock === 0;
+        else if (stock === 'low') matchesStock = p.stock > 0 && p.stock < 10;
+        else if (stock === 'in') matchesStock = p.stock >= 10;
+
+        // 4. Price
+        const matchesMin = min !== null ? p.price >= min : true;
+        const matchesMax = max !== null ? p.price <= max : true;
+
+        return matchesTerm && matchesCat && matchesStock && matchesMin && matchesMax;
+    });
+  });
 
   ngOnInit() {
-    const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
-    onSnapshot(q, (snapshot) => {
-        this.orders.set(snapshot.docs.map(d => {
-            const data = d.data();
-            return { id: d.id, ...data, date: data['createdAt'] } as Order;
-        }));
-        this.loading.set(false);
+    onSnapshot(collection(db, "products"), (snap) => {
+        this.products.set(snap.docs.map(d => ({ ...d.data(), id: d.id })));
     });
   }
 
-  async updateStatus(id: string, newStatus: string) {
-    await updateDoc(doc(db, "orders", id), { status: newStatus });
+  // --- ACTIONS ---
+
+  openForm() {
+    this.resetForm();
+    this.isEditing = false;
+    this.showForm.set(true);
   }
 
-  getStatusClass(status: string) {
-    if (status === 'Livrée') return 'success';
-    if (status === 'Annulée') return 'danger';
-    return 'warning';
+  closeForm() {
+    this.showForm.set(false);
   }
+
+  resetForm() {
+    this.form = { id: '', name: '', price: 0, stock: 0, category: 'Grains', imageUrl: '' };
+  }
+
+  resetFilters() {
+      this.searchTerm.set('');
+      this.filterCategory.set('');
+      this.filterStock.set('');
+      this.filterMinPrice.set(null);
+      this.filterMaxPrice.set(null);
+  }
+
+  edit(product: any) {
+    this.form = { ...product };
+    this.isEditing = true;
+    this.showForm.set(true);
+  }
+
+  async save() {
+    console.log('Produit sauvegardé', this.form);
+    if (!this.isEditing) {
+        await addDoc(collection(db, "products"), this.form);
+    } else {
+        await updateDoc(doc(db, "products", this.form.id), this.form);
+    }
+    this.closeForm();
+  }
+
+  async delete(id: string) {
+    if(confirm('Supprimer ce produit ?')) {
+        await deleteDoc(doc(db, "products", id));
+    }
+  }
+}
+EOF
+
+cat > src/app/pages/admin/orders/orders.component.ts <<'EOF'
+import { Component, OnInit, signal } from '@angular/core';
+import { CommonModule, DatePipe, CurrencyPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, onSnapshot, query, orderBy, doc, updateDoc } from "firebase/firestore";
+import { environment } from '../../../../environments/environment';
+
+const app = initializeApp(environment.firebaseConfig);
+const db = getFirestore(app);
+
+@Component({
+  selector: 'app-orders', standalone: true, imports: [CommonModule, FormsModule, DatePipe, CurrencyPipe],
+  template: `
+    <div class="page-container">
+      <h1>Commandes</h1>
+      <div *ngFor="let o of orders()">
+        <div style="background:white; padding:20px; margin-bottom:20px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+            <h3>Commande #{{o.id.slice(0,8)}} - {{o.total | number:'1.2-2'}} DT</h3>
+            <p><strong>Client:</strong> {{o.customer.name}} ({{o.customer.phone}})</p>
+            <p><strong>Statut:</strong> 
+                <select [ngModel]="o.status" (ngModelChange)="updateStatus(o.id, $event)">
+                    <option>En cours</option><option>Livrée</option><option>Annulée</option>
+                </select>
+            </p>
+            <div *ngFor="let i of o.items">{{i.quantity}}x {{i.name}}</div>
+        </div>
+      </div>
+    </div>
+  `
+})
+export class OrdersComponent implements OnInit {
+  orders = signal<any[]>([]);
+  ngOnInit() {
+    onSnapshot(query(collection(db,"orders"), orderBy("createdAt","desc")), s => {
+        this.orders.set(s.docs.map(d => ({id:d.id, ...d.data()})));
+    });
+  }
+  updateStatus(id:string, status:string) { updateDoc(doc(db,"orders",id), {status}); }
 }
 EOF
 
@@ -784,8 +1088,5 @@ export class AppComponent { title = 'cafe-ecommerce-app'; }
 EOF
 
 echo "==================================================="
-echo "✅ TERMINÉ !"
-echo "   - Authentification corrigée."
-echo "   - Checkout ajouté."
-echo "   - CartService mis à jour avec Firestore."
+echo "✅ TERMINÉ ! Design Admin Moderne Appliqué"
 echo "==================================================="
