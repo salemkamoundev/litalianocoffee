@@ -1,0 +1,5 @@
+.router-main {
+    /* Assure que le contenu ne passe pas sous le header fixe (Hauteur header ~80px) */
+    padding-top: 80px; 
+    min-height: calc(100vh - 80px); /* Assure que le footer est bien en bas */
+}

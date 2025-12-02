@@ -1,57 +1,29 @@
-/* Importation des polices Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap');
 
 :root {
-  --primary-color: #6f4e37; /* Coffee Brown */
-  --secondary-color: #2c3e50; /* Dark Blue/Grey */
-  --accent-color: #d4a373; /* Gold/Latte */
+  --primary-color: #6f4e37;
+  --secondary-color: #2c3e50;
+  --accent-color: #d4a373;
   --text-color: #333;
   --light-bg: #f9f9f9;
+  --error-color: #e74c3c;
+  --success-color: #2ecc71;
 }
 
-body, html {
-  margin: 0;
-  padding: 0;
-  font-family: 'Lato', sans-serif;
-  box-sizing: border-box;
-  scroll-behavior: smooth;
-  color: var(--text-color);
-}
+body, html { margin: 0; padding: 0; font-family: 'Lato', sans-serif; color: var(--text-color); background-color: var(--light-bg); }
+h1, h2, h3, h4, h5, h6 { font-family: 'Playfair Display', serif; margin-bottom: 1rem; }
+button { cursor: pointer; transition: all 0.3s ease; }
+input { outline: none; }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Playfair Display', serif;
-  margin-bottom: 1rem;
-}
+.page-container { padding: 100px 20px 50px; max-width: 1200px; margin: 0 auto; min-height: 80vh; }
+.page-container h1 { font-size: 3rem; color: var(--primary-color); border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; margin-bottom: 30px; }
 
-button {
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-/* Utilitaires d'animation */
-.fade-in-up {
-  animation: fadeInUp 1s ease-out forwards;
-  opacity: 0;
-  transform: translateY(30px);
-}
-
-@keyframes fadeInUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Style de base pour les pages de contenu */
-.page-container {
-    padding: 100px 20px 50px; /* Espace pour le header fixe */
-    max-width: 1200px;
-    margin: 0 auto;
-}
-.page-container h1 {
-    font-size: 3rem;
-    color: var(--primary-color);
-    border-bottom: 2px solid var(--accent-color);
-    padding-bottom: 10px;
-    margin-bottom: 30px;
-}
+/* Auth Styles */
+.form-wrapper { display: flex; justify-content: center; padding-top: 50px; }
+.auth-card { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: var(--secondary-color); }
+.form-group input, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+.btn-submit { width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 5px; font-weight: bold; margin-top: 10px; }
+.google-btn { width: 100%; padding: 12px; background: #fff; border: 1px solid #ccc; border-radius: 5px; margin-top: 15px; font-weight: bold; color: #555; display: flex; align-items: center; justify-content: center; gap: 10px;}
+.error-alert { color: var(--error-color); text-align: center; margin-bottom: 15px; }
