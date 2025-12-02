@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <footer id="contact">
+    <footer>
       <div class="container">
         <div class="col">
           <h3>L'Italiano Coffee</h3>

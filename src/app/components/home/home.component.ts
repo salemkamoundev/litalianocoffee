@@ -1,23 +1,21 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router'; // Ajout de RouterLink
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink], // Import RouterLink
+  imports: [CommonModule, RouterLink],
   template: `
-    <!-- Hero Section (Parallax) -->
     <section class="hero" id="home">
       <div class="overlay"></div>
       <div class="content fade-in-up">
         <h1 class="main-title">L'Italiano Coffee</h1>
         <p class="subtitle">Le goût authentique, de la fève à votre tasse.</p>
-        <button class="cta-button" routerLink="/products">Découvrir nos Cafés</button> <!-- Lien vers Produits -->
+        <button class="cta-button" routerLink="/products">Découvrir nos Cafés</button>
       </div>
     </section>
 
-    <!-- Section Équipe / Slogan -->
     <section class="team-section" id="about">
       <div class="container">
         <div class="text-block">
@@ -34,7 +32,6 @@ import { RouterLink } from '@angular/router'; // Ajout de RouterLink
       </div>
     </section>
 
-    <!-- Section Produits (Aperçu) -->
     <section class="products-preview" id="products">
       <div class="container">
         <h2>Nos Univers</h2>
@@ -68,12 +65,11 @@ import { RouterLink } from '@angular/router'; // Ajout de RouterLink
     </section>
   `,
   styles: [`
-    /* Hero & Parallax */
     .hero {
       position: relative;
       height: 100vh;
-      background-image: url('https://images.unsplash.com/photo-1497935586351-b67a49e012bf?q=80&w=2000&auto=format&fit=crop'); /* Image de fond Café */
-      background-attachment: fixed; /* Effet Parallaxe */
+      background-image: url('https://images.unsplash.com/photo-1497935586351-b67a49e012bf?q=80&w=2000&auto=format&fit=crop');
+      background-attachment: fixed;
       background-position: center;
       background-repeat: no-repeat;
       background-size: cover;
@@ -86,7 +82,7 @@ import { RouterLink } from '@angular/router'; // Ajout de RouterLink
     .overlay {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.5); /* Assombrir l'image */
+      background: rgba(0, 0, 0, 0.5);
     }
     .content {
       position: relative;
@@ -119,8 +115,6 @@ import { RouterLink } from '@angular/router'; // Ajout de RouterLink
       background-color: #b58055;
       transform: scale(1.05);
     }
-
-    /* Team Section */
     .team-section {
       padding: 80px 20px;
       background: #fff;
@@ -149,8 +143,6 @@ import { RouterLink } from '@angular/router'; // Ajout de RouterLink
       font-style: italic;
       margin-bottom: 20px;
     }
-
-    /* Products Preview */
     .products-preview {
       padding: 80px 20px;
       background-color: #f5f5f5;
@@ -191,8 +183,6 @@ import { RouterLink } from '@angular/router'; // Ajout de RouterLink
         text-decoration: underline;
         font-weight: bold;
     }
-
-    /* Responsive */
     @media (max-width: 768px) {
       .main-title { font-size: 2.5rem; }
       .team-section .container { flex-direction: column; }

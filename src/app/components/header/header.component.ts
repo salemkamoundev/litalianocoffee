@@ -1,4 +1,4 @@
-import { Component, HostListener } from '@angular/core'; // Ajout de HostListener
+import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
@@ -31,12 +31,9 @@ import { RouterLink } from '@angular/router';
       z-index: 1000;
       padding: 20px 0;
       transition: background 0.3s, padding 0.3s;
-      /* CORRECTION: Rendre l'en-tête opaque par défaut (Noir) */
       background: rgba(0, 0, 0, 0.9);
       box-shadow: 0 2px 10px rgba(0,0,0,0.3);
     }
-    /* La classe .scrolled n'est plus nécessaire si l'en-tête est opaque par défaut, 
-       mais la gardons pour les transitions futures ou des styles différents */
     header.scrolled {
       padding: 10px 0;
     }
@@ -91,14 +88,8 @@ import { RouterLink } from '@angular/router';
 export class HeaderComponent {
   isScrolled = false;
 
-  // Utilisation de @HostListener pour une gestion de scroll plus stable dans Angular
   @HostListener('window:scroll', [])
   onWindowScroll() {
     this.isScrolled = window.scrollY > 50;
-  }
-
-  // Suppression de l'écouteur dans le constructeur pour éviter les conflits de chargement initial
-  constructor() {
-    // La logique de scroll est maintenant gérée par @HostListener
   }
 }
