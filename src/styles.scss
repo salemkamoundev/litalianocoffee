@@ -1,19 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap');
 
 :root {
-  --primary-color: #6f4e37;
-  --secondary-color: #2c3e50;
-  --accent-color: #d4a373;
+  --primary-color: #6f4e37; /* Brun Café */
+  --secondary-color: #2c3e50; /* Gris Sombre */
+  --accent-color: #d4a373; /* Doré Latte */
   --text-color: #333;
   --light-bg: #f9f9f9;
   --error-color: #e74c3c;
   --success-color: #2ecc71;
 }
 
-body, html { margin: 0; padding: 0; font-family: 'Lato', sans-serif; color: var(--text-color); background-color: var(--light-bg); }
+body, html { margin: 0; padding: 0; font-family: 'Lato', sans-serif; color: var(--text-color); background-color: var(--light-bg); overflow-x: hidden; }
 h1, h2, h3, h4, h5, h6 { font-family: 'Playfair Display', serif; margin-bottom: 1rem; }
 button { cursor: pointer; transition: all 0.3s ease; }
-input, select { outline: none; }
+input { outline: none; }
 
 .page-container { padding: 100px 20px 50px; max-width: 1400px; margin: 0 auto; min-height: 80vh; }
 .page-container h1 { font-size: 3rem; color: var(--primary-color); border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; margin-bottom: 30px; }
@@ -27,3 +27,37 @@ input, select { outline: none; }
 .btn-submit { width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 5px; font-weight: bold; margin-top: 10px; }
 .google-btn { width: 100%; padding: 12px; background: #fff; border: 1px solid #ccc; border-radius: 5px; margin-top: 15px; font-weight: bold; color: #555; display: flex; align-items: center; justify-content: center; gap: 10px;}
 .error-alert { color: var(--error-color); text-align: center; margin-bottom: 15px; }
+
+/* Modern Input Style used across new components */
+.input-modern {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid #e0d6ce;
+    background: #fff;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border 0.3s, box-shadow 0.3s;
+}
+.input-modern:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(212, 163, 115, 0.2);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 50px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-size: 1rem;
+    box-shadow: 0 4px 15px rgba(111, 78, 55, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(111, 78, 55, 0.4);
+}

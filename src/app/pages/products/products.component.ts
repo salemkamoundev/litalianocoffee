@@ -45,7 +45,7 @@ const db = getFirestore(app);
   `,
   styles: [`
     .main-layout { display: flex; gap: 30px; }
-    .sidebar { width: 250px; flex-shrink: 0; }
+    .sidebar { width: 280px; flex-shrink: 0; padding-right: 20px; border-right: 1px solid #eee; }
     .search-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 20px; }
     .categories button { display: block; width: 100%; text-align: left; padding: 10px; background: none; border: none; cursor: pointer; border-bottom: 1px solid #eee; }
     .categories button.active { font-weight: bold; color: var(--primary-color); }
