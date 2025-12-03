@@ -6,152 +6,58 @@ import { initializeApp } from "firebase/app";
 import { getFirestore, collection, onSnapshot, DocumentData } from "firebase/firestore";
 import { environment } from '../../../environments/environment';
 import { CartService } from '../../services/cart.service';
-
-interface Product extends DocumentData { 
-  id: string; name: string; price: number; category: string; 
-  displayCategory?: string; // Catégorie nettoyée
-  imageUrl: string; stock: number; 
-}
-
+interface Product extends DocumentData { id: string; name: string; price: number; category: string; imageUrl: string; stock: number; displayCategory?: string; }
 const app = initializeApp(environment.firebaseConfig);
 const db = getFirestore(app);
-
 @Component({
   selector: 'app-products', standalone: true, imports: [CommonModule, RouterLink, FormsModule],
   template: `
     <div class="page-container">
-      <h1>Nos Cafés & Machines</h1>
+      <h1>Nos Produits</h1>
       <div class="main-layout">
-        
-        <!-- Sidebar Moderne -->
         <aside class="sidebar">
-            <div class="search-box">
-                <input type="text" [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)" placeholder="Rechercher..." class="input-modern">
-            </div>
-            
-            <div class="filter-section">
-                <h3>Catégories</h3>
-                <div class="cat-list">
-                    <button (click)="selectCategory('')" [class.active]="!selectedCategory()">Tout voir</button>
-                    @for (cat of categories(); track cat) {
-                        <button (click)="selectCategory(cat)" [class.active]="selectedCategory() === cat">{{ cat }}</button>
-                    }
-                </div>
+            <input [(ngModel)]="searchTerm" placeholder="Rechercher..." class="input-modern" style="margin-bottom:20px">
+            <div class="categories">
+                <button (click)="selectCategory('')" [class.active]="!selectedCategory()">Tout voir</button>
+                <button *ngFor="let c of categories()" (click)="selectCategory(c)" [class.active]="selectedCategory()===c">{{c}}</button>
             </div>
         </aside>
-
-        <!-- Grille Produits -->
         <main class="grid">
-            @for (p of filteredProducts(); track p.id) {
-                <div class="card">
-                    <div class="card-img-wrap" [routerLink]="['/product', p.id]">
-                        <img [src]="p.imageUrl" class="card-img">
-                        <span class="badge">{{ p.displayCategory }}</span>
-                    </div>
-                    <div class="card-body">
-                        <h3>{{ p.name }}</h3>
-                        <div class="price-row">
-                            <span class="price">{{ p.price | number:'1.2-2' }} DT</span>
-                            <button (click)="addToCart(p)" class="btn-add" title="Ajouter au panier">+</button>
-                        </div>
+            <div *ngFor="let p of filteredProducts()" class="card">
+                <div class="card-img" [style.background-image]="'url('+p.imageUrl+')'" [routerLink]="['/product', p.id]"><span class="badge">{{p.displayCategory}}</span></div>
+                <div class="card-body">
+                    <h3>{{p.name}}</h3>
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                        <span style="font-weight:bold;font-size:1.2rem">{{p.price}} DT</span>
+                        <button (click)="addToCart(p)" class="btn-primary" style="padding:5px 15px">+</button>
                     </div>
                 </div>
-            }
+            </div>
         </main>
       </div>
     </div>
   `,
   styles: [`
-    .main-layout { display: flex; gap: 40px; }
-    .sidebar { width: 280px; flex-shrink: 0; padding-right: 20px; border-right: 1px solid #eee; }
-    .search-box { margin-bottom: 30px; }
-    .filter-section h3 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; }
-    .cat-list button {
-        display: block; width: 100%; text-align: left; padding: 12px 15px; 
-        background: white; border: 1px solid #eee; margin-bottom: 8px; border-radius: 8px;
-        cursor: pointer; transition: 0.2s; font-weight: 500; color: #555;
-    }
-    .cat-list button:hover, .cat-list button.active {
-        background: var(--primary-color); color: white; border-color: var(--primary-color); transform: translateX(5px);
-    }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; flex-grow: 1; }
-    .card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(43,29,22,0.08); transition: all 0.3s ease; border: 1px solid #f0f0f0; }
-    .card:hover { transform: translateY(-8px); box-shadow: 0 15px 40px rgba(43,29,22,0.15); }
-    .card-img-wrap { position: relative; height: 220px; overflow: hidden; cursor: pointer; }
-    .card-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
-    .card:hover .card-img { transform: scale(1.1); }
-    .badge {
-        position: absolute; top: 15px; left: 15px;
-        background: rgba(255,255,255,0.9); color: var(--primary-color);
-        padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold;
-        text-transform: uppercase; letter-spacing: 1px;
-    }
-    .card-body { padding: 20px; }
-    .card-body h3 { font-size: 1.1rem; margin: 0 0 15px 0; color: var(--text-color); font-weight: 700; height: 40px; overflow: hidden; }
-    .price-row { display: flex; justify-content: space-between; align-items: center; }
-    .price { font-size: 1.3rem; font-weight: 800; color: var(--primary-color); }
-    .btn-add {
-        width: 40px; height: 40px; border-radius: 50%; border: none;
-        background: var(--accent-color); color: white; font-size: 1.5rem;
-        display: flex; align-items: center; justify-content: center;
-        cursor: pointer; transition: 0.2s;
-    }
-    .btn-add:hover { background: var(--primary-color); transform: scale(1.1); }
-    @media (max-width: 900px) { .main-layout { flex-direction: column; } .sidebar { width: 100%; border-right: none; } }
+    .main-layout { display: flex; gap: 30px; } .sidebar { width: 250px; flex-shrink: 0; }
+    .categories button { display: block; width: 100%; text-align: left; padding: 10px; background: white; border: 1px solid #eee; margin-bottom: 5px; border-radius: 5px; cursor: pointer; }
+    .categories button.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; flex-grow: 1; }
+    .card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+    .card-img { height: 200px; background-size: cover; position: relative; cursor: pointer; }
+    .badge { position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.9); color: var(--primary-color); padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; font-weight: bold; }
+    .card-body { padding: 15px; } .card-body h3 { margin: 0 0 10px 0; font-size: 1.1rem; }
+    @media(max-width:800px){ .main-layout{flex-direction:column} .sidebar{width:100%} }
   `]
 })
 export class ProductsComponent implements OnInit {
-  products = signal<Product[]>([]);
-  searchTerm = signal('');
-  selectedCategory = signal<string | null>(null);
-  cartService = inject(CartService);
-
-  // CORRECTION 1: Typage strict du filter pour retourner string[]
-  categories = computed(() => {
-    const all = this.products()
-        .map(p => p.displayCategory)
-        .filter((c): c is string => !!c && c !== 'Autres');
-    return Array.from(new Set(all)).sort();
-  });
-
+  products = signal<Product[]>([]); searchTerm = signal(''); selectedCategory = signal<string|null>(null); cartService = inject(CartService);
+  categories = computed(() => [...new Set(this.products().map(p => p.displayCategory).filter((c): c is string => !!c))].sort());
   filteredProducts = computed(() => {
-    const term = this.searchTerm().toLowerCase();
-    const cat = this.selectedCategory();
-    return this.products().filter(p => {
-      const nameMatch = p.name.toLowerCase().includes(term);
-      const catMatch = !cat || p.displayCategory === cat;
-      return nameMatch && catMatch;
-    });
+    const t = this.searchTerm().toLowerCase(); const c = this.selectedCategory();
+    return this.products().filter(p => p.name.toLowerCase().includes(t) && (!c || p.displayCategory === c));
   });
-
-  ngOnInit() {
-    onSnapshot(collection(db, "products"), (snap) => {
-        const loaded = snap.docs.map(d => {
-            const data = d.data() as Product;
-            const cleanCat = this.cleanCategory(data.category);
-            return { ...data, id: d.id, displayCategory: cleanCat };
-        });
-        this.products.set(loaded);
-    });
-  }
-
-  private cleanCategory(raw: string): string {
-    if (!raw) return 'Autres';
-    const paths = raw.split(',');
-    let bestPath = paths.find(p => !p.includes('Non classé') && p.includes('>')) || paths[0];
-    if (bestPath.trim() === 'Non classé') return 'Autres';
-    const parts = bestPath.split('>');
-    let leaf = parts[parts.length - 1].trim();
-    if (leaf === 'Non classé' && parts.length > 1) {
-        leaf = parts[parts.length - 2].trim();
-    }
-    return leaf;
-  }
-
-  // CORRECTION 2: Signature permissive pour accepter undefined/null/string
-  selectCategory(cat: string | null | undefined) { 
-      this.selectedCategory.set(cat || null); 
-  }
-  
-  addToCart(p: Product) { this.cartService.addItem(p); }
+  ngOnInit() { onSnapshot(collection(db,"products"), s => this.products.set(s.docs.map(d => { const dt=d.data() as Product; return {...dt, id:d.id, displayCategory: this.clean(dt.category)}; }))); }
+  clean(raw:string){ if(!raw)return 'Autres'; const p=raw.split(','); let b=p.find(x=>!x.includes('Non classé')&&x.includes('>'))||p[0]; if(b.trim()==='Non classé')return 'Autres'; const pts=b.split('>'); let l=pts[pts.length-1].trim(); if(l==='Non classé'&&pts.length>1)l=pts[pts.length-2].trim(); return l; }
+  selectCategory(c:string|null|undefined){ this.selectedCategory.set(c||null); }
+  addToCart(p:Product){ this.cartService.addItem(p); }
 }

@@ -1,0 +1,995 @@
+------------------------------
+📄 Fichier : src/index.html
+------------------------------
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>CafeEcommerceApp</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>
+
+------------------------------
+📄 Fichier : src/app/app.component.html
+------------------------------
+<app-header></app-header>
+<main class="router-main">
+    <router-outlet></router-outlet>
+</main>
+<app-footer></app-footer>
+
+------------------------------
+📄 Fichier : src/app/app.spec.ts
+------------------------------
+import { TestBed } from '@angular/core/testing';
+import { App } from './app';
+
+describe('App', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [App],
+    }).compileComponents();
+  });
+
+  it('should create the app', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+    expect(app).toBeTruthy();
+  });
+
+  it('should render title', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, cafe-ecommerce-app');
+  });
+});
+
+------------------------------
+📄 Fichier : src/app/app.component.scss
+------------------------------
+.router-main {
+    /* Assure que le contenu ne passe pas sous le header fixe (Hauteur header ~80px) */
+    padding-top: 80px; 
+    min-height: calc(100vh - 80px); /* Assure que le footer est bien en bas */
+}
+
+------------------------------
+📄 Fichier : src/app/app.routes.ts
+------------------------------
+import { Routes } from '@angular/router';
+import { HomeComponent } from './components/home/home.component';
+import { ProductsComponent } from './pages/products/products.component';
+import { ProductDetailComponent } from './pages/products/product-detail.component';
+import { CartComponent } from './pages/cart/cart.component';
+import { CheckoutComponent } from './pages/checkout/checkout.component';
+import { ContactComponent } from './pages/contact/contact.component';
+import { LoginComponent } from './pages/login/login.component';
+import { SignupComponent } from './pages/signup/signup.component';
+import { AdminComponent } from './pages/admin/admin.component';
+import { CrudProductsComponent } from './pages/admin/crud-products/crud-products.component';
+import { OrdersComponent } from './pages/admin/orders/orders.component';
+export const routes: Routes = [
+  { path: '', component: HomeComponent }, { path: 'products', component: ProductsComponent }, { path: 'product/:id', component: ProductDetailComponent },
+  { path: 'cart', component: CartComponent }, { path: 'checkout', component: CheckoutComponent }, { path: 'contact', component: ContactComponent },
+  { path: 'login', component: LoginComponent }, { path: 'signup', component: SignupComponent },
+  { path: 'admin', component: AdminComponent }, { path: 'admin/products', component: CrudProductsComponent }, { path: 'admin/orders', component: OrdersComponent },
+  { path: '**', redirectTo: '' }
+];
+
+------------------------------
+📄 Fichier : src/app/app.component.spec.ts
+------------------------------
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { AppComponent } from './app.component';
+
+describe('AppComponent', () => {
+  let component: AppComponent;
+  let fixture: ComponentFixture<AppComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [AppComponent]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(AppComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+------------------------------
+📄 Fichier : src/app/app.component.ts
+------------------------------
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import { HeaderComponent } from './components/header/header.component';
+import { FooterComponent } from './components/footer/footer.component';
+@Component({ selector: 'app-root', standalone: true, imports: [RouterOutlet, HeaderComponent, FooterComponent], template: `<app-header></app-header><main style="padding-top:75px;min-height:85vh"><router-outlet></router-outlet></main><app-footer></app-footer>` })
+export class AppComponent {}
+
+------------------------------
+📄 Fichier : src/app/components/home/home.component.ts
+------------------------------
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
+@Component({
+  selector: 'app-home', standalone: true, imports: [CommonModule, RouterLink],
+  template: `
+    <section class="hero">
+      <div class="slider"><div class="slide slide-1"></div><div class="slide slide-2"></div><div class="slide slide-3"></div></div>
+      <div class="overlay"></div>
+      <div class="content">
+        <h1 class="fade-in">L'Italiano Coffee</h1><p class="fade-in delay-1">Le goût authentique.</p>
+        <a routerLink="/products" class="cta-btn fade-in delay-2">Voir la Collection</a>
+      </div>
+    </section>
+    <section class="categories">
+        <div class="container"><h2>Nos Univers</h2><div class="grid">
+            <div class="card" routerLink="/products"><div class="card-bg" style="background-image: url('/assets/cat_grains.jpg')"></div><div class="card-content"><h3>Grains</h3></div></div>
+            <div class="card" routerLink="/products"><div class="card-bg" style="background-image: url('/assets/cat_capsules.jpg')"></div><div class="card-content"><h3>Capsules</h3></div></div>
+            <div class="card" routerLink="/products"><div class="card-bg" style="background-image: url('/assets/cat_machine.jpg')"></div><div class="card-content"><h3>Machines</h3></div></div>
+        </div></div>
+    </section>
+  `,
+  styles: [`
+    .hero { height: 90vh; position: relative; display: flex; align-items: center; justify-content: center; text-align: center; color: white; overflow: hidden; }
+    .slider, .slide { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .slide { background-size: cover; background-position: center; opacity: 0; animation: slideShow 15s infinite; }
+    .slide-1 { background-image: url('/assets/slider1.png'); animation-delay: 0s; }
+    .slide-2 { background-image: url('/assets/slider2.png'); animation-delay: 5s; }
+    .slide-3 { background-image: url('/assets/slider3.png'); animation-delay: 10s; }
+    @keyframes slideShow { 0%, 10% { opacity: 1; } 33%, 100% { opacity: 0; } }
+    .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); z-index: 1; }
+    .content { position: relative; z-index: 2; padding: 20px; }
+    h1 { font-size: 5rem; text-shadow: 0 2px 10px rgba(0,0,0,0.5); font-family: 'Playfair Display', serif; }
+    .cta-btn { background: var(--accent-color); color: white; padding: 15px 40px; border-radius: 30px; text-decoration: none; font-weight: bold; text-transform: uppercase; }
+    .categories { padding: 80px 0; text-align: center; }
+    .grid { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; padding: 20px; }
+    .card { width: 300px; height: 400px; position: relative; border-radius: 15px; overflow: hidden; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+    .card-bg { position: absolute; inset: 0; background-size: cover; transition: 0.5s; }
+    .card:hover .card-bg { transform: scale(1.1); }
+    .card-content { position: absolute; bottom: 0; width: 100%; padding: 30px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); color: white; }
+  `]
+})
+export class HomeComponent {}
+
+------------------------------
+📄 Fichier : src/app/components/footer/footer.component.ts
+------------------------------
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+@Component({ selector: 'app-footer', standalone: true, imports: [CommonModule], template: `<footer><div class="container"><p>L'Italiano Coffee &copy; 2025.</p></div></footer>`, styles: [`footer { background: #1a1a1a; color: #fff; padding: 40px 0; text-align: center; }`] }) export class FooterComponent {}
+
+------------------------------
+📄 Fichier : src/app/components/header/header.component.ts
+------------------------------
+import { Component, HostListener, inject, signal, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+import { CartService } from '../../services/cart.service';
+
+@Component({
+  selector: 'app-header',
+  standalone: true,
+  imports: [CommonModule, RouterLink, RouterLinkActive],
+  template: `
+    <header [class.scrolled]="isScrolled()">
+      <div class="parallax-wrapper">
+        <div class="parallax-container">
+            <div class="parallax-layer layer-back" [style.transform]="'translateY(' + scrollY() * 0.2 + 'px)'"></div>
+            <div class="parallax-layer layer-mid" [style.transform]="'translateY(' + scrollY() * 0.4 + 'px)'"></div>
+            <div class="parallax-layer layer-front" [style.transform]="'translateY(' + scrollY() * 0.6 + 'px)'"></div>
+        </div>
+      </div>
+      <div class="container header-content" [style.transform]="'translateY(' + scrollY() * -0.1 + 'px)'">
+        <div class="logo" routerLink="/"><span class="icon">☕</span><div class="text"><span class="brand">L'ITALIANO</span><span class="suffix">COFFEE</span></div></div>
+        <button class="mobile-toggle" (click)="toggleMenu()" [class.open]="isMenuOpen()"><span></span><span></span><span></span></button>
+        <nav [class.mobile-open]="isMenuOpen()">
+          <ul>
+            <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" (click)="closeMenu()">Accueil</a></li>
+            <li><a routerLink="/products" routerLinkActive="active" (click)="closeMenu()">Nos Cafés</a></li>
+            <li><a routerLink="/contact" routerLinkActive="active" (click)="closeMenu()">Contact</a></li>
+            <li class="mobile-only"><a routerLink="/cart" (click)="closeMenu()">Panier ({{ cart.itemCount() }})</a></li>
+            @if (auth.isAuthenticated()) {
+                <li class="mobile-only"><button (click)="logout(); closeMenu()" class="nav-btn">Déconnexion</button></li>
+            } @else {
+                <li class="mobile-only"><a routerLink="/login" (click)="closeMenu()">Connexion</a></li>
+            }
+          </ul>
+        </nav>
+        <div class="actions desktop-only">
+            <a routerLink="/cart" class="cart-btn" [class.has-items]="cart.itemCount() > 0"><span class="cart-icon">🛒</span><span class="cart-count" *ngIf="cart.itemCount() > 0">{{ cart.itemCount() }}</span></a>
+            <div class="auth-buttons">
+                @if (auth.isAdmin()) { <a routerLink="/admin" class="admin-link">Admin</a> }
+                @if (auth.isAuthenticated()) { <button (click)="logout()" class="logout-btn">✕</button> } 
+                @else { <a routerLink="/login" class="login-link">Login</a> }
+            </div>
+        </div>
+      </div>
+      <div class="menu-overlay" *ngIf="isMenuOpen()" (click)="closeMenu()"></div>
+    </header>
+  `,
+  styles: [`
+    header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; height: 140px; transition: 0.4s cubic-bezier(0.25,0.8,0.25,1); background: transparent; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    header.scrolled { height: 70px; background: #2c3e50; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+    .parallax-wrapper { position: absolute; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+    .parallax-container { position: absolute; inset: 0; }
+    .parallax-layer { position: absolute; inset: -10% 0; background-size: cover; will-change: transform; transition: opacity 0.4s; }
+    .layer-back { background-image: url('/assets/slider1.png'); opacity: 0.3; filter: blur(2px); }
+    .layer-mid { background-image: url('/assets/cat_grains.jpg'); opacity: 0.15; }
+    .header-content { position: relative; z-index: 100; height: 100%; display: flex; justify-content: space-between; align-items: flex-start; padding: 20px 30px; will-change: transform; }
+    header.scrolled .header-content { align-items: center; padding: 0 30px; }
+    header.scrolled .parallax-layer { opacity: 0; }
+    .container { max-width: 1400px; margin: 0 auto; }
+    .logo { display: flex; align-items: center; gap: 10px; cursor: pointer; color: white; pointer-events: auto; }
+    .logo .icon { font-size: 2rem; } .brand { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.2rem; } .suffix { font-size: 0.7rem; color: var(--accent-color); display: block; letter-spacing: 2px; }
+    nav ul { list-style: none; display: flex; gap: 30px; margin: 0; padding: 0; }
+    nav a { color: rgba(255,255,255,0.9); text-decoration: none; text-transform: uppercase; font-size: 0.9rem; font-weight: 500; transition: color 0.3s; cursor: pointer; pointer-events: auto; }
+    nav a:hover { color: var(--accent-color); }
+    .actions { display: flex; align-items: center; gap: 20px; pointer-events: auto; }
+    .login-link { color: white; border: 1px solid rgba(255,255,255,0.5); padding: 6px 15px; border-radius: 30px; font-size: 0.8rem; }
+    .logout-btn { background: none; border: none; color: #ccc; cursor: pointer; } .admin-link { color: #f1c40f; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; }
+    .cart-btn { color: white; font-size: 1.2rem; } .cart-count { position: absolute; top: -8px; right: -8px; background: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; }
+    
+    .mobile-toggle { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; z-index: 2000; padding: 10px; pointer-events: auto; }
+    .mobile-toggle span { display: block; width: 25px; height: 3px; background: white; transition: 0.3s; }
+    .mobile-only { display: none; } .menu-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1500; backdrop-filter: blur(3px); }
+    
+    @media (max-width: 768px) {
+        .desktop-only { display: none; } .mobile-toggle { display: flex; } .mobile-only { display: block; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; }
+        .menu-overlay { display: block; }
+        header { height: 100px; }
+        nav { position: fixed; top: 0; right: -100%; width: 75%; height: 100vh; background: #2c3e50; padding: 100px 30px; transition: right 0.3s; z-index: 1600; box-shadow: -5px 0 20px rgba(0,0,0,0.5); display: block !important; }
+        nav.mobile-open { right: 0; } nav ul { flex-direction: column; gap: 20px; } nav a { font-size: 1.2rem; display: block; padding: 10px 0; }
+        .mobile-toggle.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 6px); } .mobile-toggle.open span:nth-child(2) { opacity: 0; } .mobile-toggle.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -6px); }
+    }
+  `]
+})
+export class HeaderComponent {
+  scrollY = signal(0); isMenuOpen = signal(false); isScrolled = computed(() => this.scrollY() > 50);
+  auth = inject(AuthService); cart = inject(CartService); private router = inject(Router);
+  @HostListener('window:scroll', []) onScroll() { this.scrollY.set(window.scrollY); }
+  toggleMenu() { this.isMenuOpen.update(v => !v); } closeMenu() { this.isMenuOpen.set(false); }
+  async logout() { await this.auth.signOut(); this.router.navigate(['/']); }
+}
+
+------------------------------
+📄 Fichier : src/app/app.config.ts
+------------------------------
+import { ApplicationConfig, LOCALE_ID } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { routes } from './app.routes';
+import { registerLocaleData } from '@angular/common';
+import localeFr from '@angular/common/locales/fr';
+
+registerLocaleData(localeFr);
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideRouter(routes),
+    { provide: LOCALE_ID, useValue: 'fr' }
+  ]
+};
+
+------------------------------
+📄 Fichier : src/app/app.html
+------------------------------
+<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
+<!-- * * * * * * * * * * * The content below * * * * * * * * * * * -->
+<!-- * * * * * * * * * * is only a placeholder * * * * * * * * * * -->
+<!-- * * * * * * * * * * and can be replaced.  * * * * * * * * * * -->
+<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
+<!-- * * * * * * * * * Delete the template below * * * * * * * * * -->
+<!-- * * * * * * * to get started with your project! * * * * * * * -->
+<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
+
+<style>
+  :host {
+    --bright-blue: oklch(51.01% 0.274 263.83);
+    --electric-violet: oklch(53.18% 0.28 296.97);
+    --french-violet: oklch(47.66% 0.246 305.88);
+    --vivid-pink: oklch(69.02% 0.277 332.77);
+    --hot-red: oklch(61.42% 0.238 15.34);
+    --orange-red: oklch(63.32% 0.24 31.68);
+
+    --gray-900: oklch(19.37% 0.006 300.98);
+    --gray-700: oklch(36.98% 0.014 302.71);
+    --gray-400: oklch(70.9% 0.015 304.04);
+
+    --red-to-pink-to-purple-vertical-gradient: linear-gradient(
+      180deg,
+      var(--orange-red) 0%,
+      var(--vivid-pink) 50%,
+      var(--electric-violet) 100%
+    );
+
+    --red-to-pink-to-purple-horizontal-gradient: linear-gradient(
+      90deg,
+      var(--orange-red) 0%,
+      var(--vivid-pink) 50%,
+      var(--electric-violet) 100%
+    );
+
+    --pill-accent: var(--bright-blue);
+
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+      "Segoe UI Symbol";
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1 {
+    font-size: 3.125rem;
+    color: var(--gray-900);
+    font-weight: 500;
+    line-height: 100%;
+    letter-spacing: -0.125rem;
+    margin: 0;
+    font-family: "Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+      "Segoe UI Symbol";
+  }
+
+  p {
+    margin: 0;
+    color: var(--gray-700);
+  }
+
+  main {
+    width: 100%;
+    min-height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    box-sizing: inherit;
+    position: relative;
+  }
+
+  .angular-logo {
+    max-width: 9.2rem;
+  }
+
+  .content {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    max-width: 700px;
+    margin-bottom: 3rem;
+  }
+
+  .content h1 {
+    margin-top: 1.75rem;
+  }
+
+  .content p {
+    margin-top: 1.5rem;
+  }
+
+  .divider {
+    width: 1px;
+    background: var(--red-to-pink-to-purple-vertical-gradient);
+    margin-inline: 0.5rem;
+  }
+
+  .pill-group {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+  }
+
+  .pill {
+    display: flex;
+    align-items: center;
+    --pill-accent: var(--bright-blue);
+    background: color-mix(in srgb, var(--pill-accent) 5%, transparent);
+    color: var(--pill-accent);
+    padding-inline: 0.75rem;
+    padding-block: 0.375rem;
+    border-radius: 2.75rem;
+    border: 0;
+    transition: background 0.3s ease;
+    font-family: var(--inter-font);
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 1.4rem;
+    letter-spacing: -0.00875rem;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .pill:hover {
+    background: color-mix(in srgb, var(--pill-accent) 15%, transparent);
+  }
+
+  .pill-group .pill:nth-child(6n + 1) {
+    --pill-accent: var(--bright-blue);
+  }
+  .pill-group .pill:nth-child(6n + 2) {
+    --pill-accent: var(--electric-violet);
+  }
+  .pill-group .pill:nth-child(6n + 3) {
+    --pill-accent: var(--french-violet);
+  }
+
+  .pill-group .pill:nth-child(6n + 4),
+  .pill-group .pill:nth-child(6n + 5),
+  .pill-group .pill:nth-child(6n + 6) {
+    --pill-accent: var(--hot-red);
+  }
+
+  .pill-group svg {
+    margin-inline-start: 0.25rem;
+  }
+
+  .social-links {
+    display: flex;
+    align-items: center;
+    gap: 0.73rem;
+    margin-top: 1.5rem;
+  }
+
+  .social-links path {
+    transition: fill 0.3s ease;
+    fill: var(--gray-400);
+  }
+
+  .social-links a:hover svg path {
+    fill: var(--gray-900);
+  }
+
+  @media screen and (max-width: 650px) {
+    .content {
+      flex-direction: column;
+      width: max-content;
+    }
+
+    .divider {
+      height: 1px;
+      width: 100%;
+      background: var(--red-to-pink-to-purple-horizontal-gradient);
+      margin-block: 1.5rem;
+    }
+  }
+</style>
+
+
+<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
+<!-- * * * * * * * * * * * The content above * * * * * * * * * * * * -->
+<!-- * * * * * * * * * * is only a placeholder * * * * * * * * * * * -->
+<!-- * * * * * * * * * * and can be replaced.  * * * * * * * * * * * -->
+<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
+<!-- * * * * * * * * * * End of Placeholder  * * * * * * * * * * * * -->
+<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
+
+
+<router-outlet />
+
+------------------------------
+📄 Fichier : src/app/pages/contact/contact.component.ts
+------------------------------
+import { Component } from '@angular/core';
+@Component({ selector: 'app-contact', standalone:true, template:`<div class="page-container"><h1>Contact</h1><p>Email: contact@litalianocaffe.tn</p></div>`}) export class ContactComponent {}
+
+------------------------------
+📄 Fichier : src/app/pages/products/product-detail.component.ts
+------------------------------
+import { Component, OnInit, signal, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
+import { initializeApp } from "firebase/app";
+import { getFirestore, doc, getDoc, DocumentData } from "firebase/firestore";
+import { environment } from '../../../environments/environment';
+import { CartService } from '../../services/cart.service';
+const db = getFirestore(initializeApp(environment.firebaseConfig));
+@Component({ selector: 'app-detail', standalone: true, imports:[CommonModule], template: `<div class="page-container" *ngIf="p() as product"><div style="display:flex;gap:40px"><img [src]="product.imageUrl" style="width:500px;border-radius:10px"><div style="flex:1"><h1>{{product.name}}</h1><h2>{{product.price}} DT</h2><p [innerHTML]="product.description"></p><button (click)="cart.addItem(product)" class="btn-primary">Ajouter au panier</button></div></div></div>` })
+export class ProductDetailComponent implements OnInit {
+  p = signal<any>(null); route = inject(ActivatedRoute); cart = inject(CartService);
+  ngOnInit() { this.route.paramMap.subscribe(async m => { const s = await getDoc(doc(db,"products",m.get('id')!)); if(s.exists()) this.p.set({...s.data(), id:s.id}); }) }
+}
+
+------------------------------
+📄 Fichier : src/app/pages/products/products.component.ts
+------------------------------
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, onSnapshot, DocumentData } from "firebase/firestore";
+import { environment } from '../../../environments/environment';
+import { CartService } from '../../services/cart.service';
+interface Product extends DocumentData { id: string; name: string; price: number; category: string; imageUrl: string; stock: number; displayCategory?: string; }
+const app = initializeApp(environment.firebaseConfig);
+const db = getFirestore(app);
+@Component({
+  selector: 'app-products', standalone: true, imports: [CommonModule, RouterLink, FormsModule],
+  template: `
+    <div class="page-container">
+      <h1>Nos Produits</h1>
+      <div class="main-layout">
+        <aside class="sidebar">
+            <input [(ngModel)]="searchTerm" placeholder="Rechercher..." class="input-modern" style="margin-bottom:20px">
+            <div class="categories">
+                <button (click)="selectCategory('')" [class.active]="!selectedCategory()">Tout voir</button>
+                <button *ngFor="let c of categories()" (click)="selectCategory(c)" [class.active]="selectedCategory()===c">{{c}}</button>
+            </div>
+        </aside>
+        <main class="grid">
+            <div *ngFor="let p of filteredProducts()" class="card">
+                <div class="card-img" [style.background-image]="'url('+p.imageUrl+')'" [routerLink]="['/product', p.id]"><span class="badge">{{p.displayCategory}}</span></div>
+                <div class="card-body">
+                    <h3>{{p.name}}</h3>
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                        <span style="font-weight:bold;font-size:1.2rem">{{p.price}} DT</span>
+                        <button (click)="addToCart(p)" class="btn-primary" style="padding:5px 15px">+</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+      </div>
+    </div>
+  `,
+  styles: [`
+    .main-layout { display: flex; gap: 30px; } .sidebar { width: 250px; flex-shrink: 0; }
+    .categories button { display: block; width: 100%; text-align: left; padding: 10px; background: white; border: 1px solid #eee; margin-bottom: 5px; border-radius: 5px; cursor: pointer; }
+    .categories button.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; flex-grow: 1; }
+    .card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+    .card-img { height: 200px; background-size: cover; position: relative; cursor: pointer; }
+    .badge { position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.9); color: var(--primary-color); padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; font-weight: bold; }
+    .card-body { padding: 15px; } .card-body h3 { margin: 0 0 10px 0; font-size: 1.1rem; }
+    @media(max-width:800px){ .main-layout{flex-direction:column} .sidebar{width:100%} }
+  `]
+})
+export class ProductsComponent implements OnInit {
+  products = signal<Product[]>([]); searchTerm = signal(''); selectedCategory = signal<string|null>(null); cartService = inject(CartService);
+  categories = computed(() => [...new Set(this.products().map(p => p.displayCategory).filter((c): c is string => !!c))].sort());
+  filteredProducts = computed(() => {
+    const t = this.searchTerm().toLowerCase(); const c = this.selectedCategory();
+    return this.products().filter(p => p.name.toLowerCase().includes(t) && (!c || p.displayCategory === c));
+  });
+  ngOnInit() { onSnapshot(collection(db,"products"), s => this.products.set(s.docs.map(d => { const dt=d.data() as Product; return {...dt, id:d.id, displayCategory: this.clean(dt.category)}; }))); }
+  clean(raw:string){ if(!raw)return 'Autres'; const p=raw.split(','); let b=p.find(x=>!x.includes('Non classé')&&x.includes('>'))||p[0]; if(b.trim()==='Non classé')return 'Autres'; const pts=b.split('>'); let l=pts[pts.length-1].trim(); if(l==='Non classé'&&pts.length>1)l=pts[pts.length-2].trim(); return l; }
+  selectCategory(c:string|null|undefined){ this.selectedCategory.set(c||null); }
+  addToCart(p:Product){ this.cartService.addItem(p); }
+}
+
+------------------------------
+📄 Fichier : src/app/pages/signup/signup.component.ts
+------------------------------
+import { Component, signal, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+@Component({ selector: 'app-signup', standalone: true, imports: [CommonModule, FormsModule, RouterLink], template: `<div class="auth-bg"><div class="auth-card"><h1>Inscription</h1><input [(ngModel)]="email" name="email" class="input-modern" placeholder="Email"><br><br><input type="password" [(ngModel)]="pass" name="pass" class="input-modern" placeholder="Mot de passe"><br><br><button (click)="reg()" class="btn-submit">S'inscrire</button></div></div>` })
+export class SignupComponent { email=''; pass=''; auth=inject(AuthService); router=inject(Router); async reg(){ try{ await this.auth.signUp(this.email,this.pass); this.router.navigate(['/']); }catch(e){} } }
+
+------------------------------
+📄 Fichier : src/app/pages/admin/admin.component.ts
+------------------------------
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+@Component({
+  selector: 'app-admin', standalone: true, imports: [CommonModule, RouterLink],
+  template: `
+    <div class="page-container">
+      <h1>Admin Dashboard</h1>
+      <div *ngIf="auth.isAdmin()" style="display:grid; grid-template-columns:1fr 1fr; gap:30px;">
+        <div style="background:white; padding:30px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.1); cursor:pointer;" routerLink="/admin/products"><h2>📦 Produits</h2></div>
+        <div style="background:white; padding:30px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.1); cursor:pointer;" routerLink="/admin/orders"><h2>📄 Commandes</h2></div>
+      </div>
+      <div *ngIf="!auth.isAdmin()" style="text-align:center;"><p>Accès réservé.</p><button (click)="router.navigate(['/'])">Retour</button></div>
+    </div>
+  `
+})
+export class AdminComponent { auth = inject(AuthService); router = inject(Router); }
+
+------------------------------
+📄 Fichier : src/app/pages/admin/crud-products/crud-products.component.ts
+------------------------------
+import { Component, signal, computed, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { environment } from '../../../../environments/environment';
+const app = initializeApp(environment.firebaseConfig); const db = getFirestore(app); const storage = getStorage(app);
+
+@Component({
+  selector: 'app-crud', standalone:true, imports:[CommonModule, FormsModule],
+  template: `
+    <div class="page-container">
+      <h1>Gestion Catalogue</h1>
+      <div style="display:flex;gap:10px;margin-bottom:20px">
+        <input [(ngModel)]="st" placeholder="Rechercher..." class="input-modern" style="flex:2">
+        <select [(ngModel)]="cat" class="input-modern" style="flex:1"><option value="">Toutes Cat.</option><option *ngFor="let c of cats()" [value]="c">{{c}}</option></select>
+        <button (click)="open()" class="btn-primary">+ Nouveau</button>
+      </div>
+      
+      <!-- Modal -->
+      <div *ngIf="show()" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:2000">
+        <div style="background:white;padding:30px;border-radius:10px;width:400px">
+            <h2>{{isEdit?'Modifier':'Ajouter'}}</h2>
+            <input [(ngModel)]="f.name" placeholder="Nom" class="input-modern" style="margin-bottom:10px">
+            <input [(ngModel)]="f.price" type="number" placeholder="Prix" class="input-modern" style="margin-bottom:10px">
+            <input [(ngModel)]="f.stock" type="number" placeholder="Stock" class="input-modern" style="margin-bottom:10px">
+            <input [(ngModel)]="f.category" placeholder="Catégorie" class="input-modern" style="margin-bottom:10px">
+            <input type="file" (change)="up($event)" style="margin-bottom:10px">
+            <img *ngIf="f.imageUrl" [src]="f.imageUrl" width="50">
+            <div style="text-align:right"><button (click)="save()" class="btn-primary">Sauver</button> <button (click)="show.set(false)">Annuler</button></div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px">
+        <div *ngFor="let p of filtered()" style="background:white;padding:15px;border-radius:10px;box-shadow:0 2px 5px #ccc">
+            <img [src]="p.imageUrl" style="width:100%;height:150px;object-fit:cover;border-radius:5px">
+            <h3 style="margin:10px 0">{{p.name}}</h3>
+            <p>{{p.category}} | Stock: {{p.stock}}</p>
+            <p style="font-weight:bold">{{p.price}} DT</p>
+            <button (click)="edit(p)">✎</button> <button (click)="del(p.id)" style="color:red">🗑</button>
+        </div>
+      </div>
+    </div>
+  `
+})
+export class CrudProductsComponent implements OnInit {
+  products=signal<any[]>([]); show=signal(false); f:any={}; isEdit=false; st=signal(''); cat=signal('');
+  cats = computed(() => [...new Set(this.products().map(p => p.category).filter(Boolean))].sort());
+  filtered = computed(() => this.products().filter(p => p.name.toLowerCase().includes(this.st().toLowerCase()) && (!this.cat() || p.category === this.cat())));
+  ngOnInit(){ onSnapshot(collection(db,"products"),s=>this.products.set(s.docs.map(d=>({...d.data(),id:d.id})))); }
+  open(){ this.f={id:'',name:'',price:0,stock:0,category:'',imageUrl:''}; this.isEdit=false; this.show.set(true); }
+  edit(p:any){ this.f={...p}; this.isEdit=true; this.show.set(true); }
+  async save(){ if(this.isEdit) await updateDoc(doc(db,"products",this.f.id),this.f); else await addDoc(collection(db,"products"),this.f); this.show.set(false); }
+  async del(id:string){ if(confirm('Sur ?')) await deleteDoc(doc(db,"products",id)); }
+  async up(e:any){ const file=e.target.files[0]; if(!file)return; const r=ref(storage, 'p/'+Date.now()); await uploadBytes(r,file); this.f.imageUrl=await getDownloadURL(r); }
+}
+
+------------------------------
+📄 Fichier : src/app/pages/admin/orders/orders.component.ts
+------------------------------
+import { Component, OnInit, signal } from '@angular/core';
+import { CommonModule, DatePipe, CurrencyPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, onSnapshot, query, orderBy, doc, updateDoc } from "firebase/firestore";
+import { environment } from '../../../../environments/environment';
+const db = getFirestore(initializeApp(environment.firebaseConfig));
+@Component({
+  selector: 'app-orders', standalone:true, imports:[CommonModule, FormsModule, DatePipe, CurrencyPipe],
+  template: `
+    <div class="page-container"><h1>Commandes</h1>
+    <div *ngFor="let o of orders()" style="background:white;padding:20px;margin-bottom:15px;box-shadow:0 2px 5px #ccc;border-radius:10px">
+        <h3>#{{o.id.slice(0,6)}} - {{o.total}} DT - {{o.date?.toDate()|date:'short'}}</h3>
+        <p><strong>Client:</strong> {{o.customer.name}} ({{o.customer.phone}})</p>
+        <p><strong>Statut:</strong> <select [ngModel]="o.status" (ngModelChange)="upd(o.id, $event)"><option>En cours</option><option>Livrée</option><option>Annulée</option></select></p>
+        <ul><li *ngFor="let i of o.items">{{i.quantity}}x {{i.name}}</li></ul>
+    </div></div>
+  `
+})
+export class OrdersComponent implements OnInit {
+  orders=signal<any[]>([]);
+  ngOnInit(){ onSnapshot(query(collection(db,"orders"),orderBy("date","desc")), s=>this.orders.set(s.docs.map(d=>({...d.data(),id:d.id})))); }
+  upd(id:string, s:string){ updateDoc(doc(db,"orders",id), {status:s}); }
+}
+
+------------------------------
+📄 Fichier : src/app/pages/checkout/checkout.component.ts
+------------------------------
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { CartService } from '../../services/cart.service';
+@Component({ selector: 'app-chk', standalone: true, imports:[CommonModule, FormsModule], template: `<div class="page-container" style="max-width:600px"><h1>Checkout</h1><p>Total: {{cart.subTotal()}} DT</p><input [(ngModel)]="d.name" placeholder="Nom" class="input-modern" style="margin-bottom:10px"><input [(ngModel)]="d.phone" placeholder="Tél" class="input-modern" style="margin-bottom:10px"><textarea [(ngModel)]="d.address" placeholder="Adresse" class="input-modern"></textarea><button (click)="sub()" class="btn-primary" style="width:100%;margin-top:20px">Valider</button></div>` })
+export class CheckoutComponent { cart = inject(CartService); router=inject(Router); d={name:'',phone:'',address:''}; async sub(){ if(!this.d.name)return; await this.cart.checkout(this.d); alert('Merci !'); this.router.navigate(['/']); } }
+
+------------------------------
+📄 Fichier : src/app/pages/cart/cart.component.ts
+------------------------------
+import { Component, inject } from '@angular/core';
+import { CommonModule, CurrencyPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { CartService } from '../../services/cart.service';
+
+@Component({
+  selector: 'app-cart',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterLink, CurrencyPipe],
+  template: `
+    <div class="page-container">
+      <div class="cart-header">
+        <h1>Votre Panier</h1>
+        <span class="count-badge">{{ cart.itemCount() }} articles</span>
+      </div>
+
+      @if (cart.cartItems().length === 0) {
+        <div class="empty-state">
+            <div class="icon-bag">🛍️</div>
+            <h2>Votre panier est vide</h2>
+            <p>Il semblerait que vous n'ayez pas encore succombé à nos arômes.</p>
+            <a routerLink="/products" class="btn-primary" style="text-decoration:none;display:inline-block;margin-top:20px">Découvrir nos Cafés</a>
+        </div>
+      } @else {
+        <div class="cart-layout">
+          <div class="cart-items">
+            @for (item of cart.cartItems(); track item.id) {
+              <div class="cart-item">
+                <div class="item-image">
+                    <img [src]="item.imageUrl" [alt]="item.name">
+                </div>
+                <div class="item-info">
+                    <h3>{{ item.name }}</h3>
+                    <p class="unit-price">{{ item.price | currency:'DT':'symbol':'1.2-2':'fr' }}</p>
+                </div>
+                <div class="item-actions">
+                    <div class="qty-selector">
+                        <button (click)="updateQuantity(item.id, item.quantity - 1)">-</button>
+                        <input type="number" [ngModel]="item.quantity" (change)="onQtyChange(item.id, $event)" min="1">
+                        <button (click)="updateQuantity(item.id, item.quantity + 1)">+</button>
+                    </div>
+                    <div class="item-total">
+                        {{ (item.price * item.quantity) | currency:'DT':'symbol':'1.2-2':'fr' }}
+                    </div>
+                    <button class="btn-remove" (click)="cart.removeItem(item.id)" title="Retirer">✕</button>
+                </div>
+              </div>
+            }
+          </div>
+          <div class="cart-summary">
+            <h2>Récapitulatif</h2>
+            <div class="summary-row"><span>Sous-total</span><span>{{ cart.subTotal() | currency:'DT':'symbol':'1.2-2':'fr' }}</span></div>
+            <div class="summary-row"><span>Livraison</span><span class="free">Offerte</span></div>
+            <div class="divider"></div>
+            <div class="summary-row total"><span>Total</span><span>{{ cart.subTotal() | currency:'DT':'symbol':'1.2-2':'fr' }}</span></div>
+            <a routerLink="/checkout" class="btn-checkout">Passer la commande</a>
+            <p class="secure-text">🔒 Paiement à la livraison sécurisé</p>
+          </div>
+        </div>
+      }
+    </div>
+  `,
+  styles: [`
+    .page-container { max-width: 1200px; margin: 0 auto; padding: 120px 20px 60px; min-height: 80vh; }
+    .cart-header { display: flex; align-items: center; gap: 15px; margin-bottom: 40px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+    h1 { font-size: 2.5rem; margin: 0; color: var(--primary-color); }
+    .count-badge { background: #eee; color: #555; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: bold; }
+    .empty-state { text-align: center; padding: 80px 20px; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+    .icon-bag { font-size: 4rem; margin-bottom: 20px; display: block; }
+    .empty-state h2 { color: var(--secondary-color); margin-bottom: 10px; }
+    .empty-state p { color: #888; margin-bottom: 30px; }
+    .cart-layout { display: grid; grid-template-columns: 1fr 350px; gap: 40px; align-items: start; }
+    .cart-items { background: white; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.03); overflow: hidden; }
+    .cart-item { display: flex; align-items: center; padding: 20px; border-bottom: 1px solid #f5f5f5; transition: background 0.2s; }
+    .cart-item:hover { background: #fafafa; }
+    .item-image img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; margin-right: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .item-info { flex: 1; }
+    .item-info h3 { margin: 0 0 5px; font-size: 1.1rem; color: var(--secondary-color); }
+    .unit-price { color: #888; font-size: 0.9rem; margin: 0; }
+    .item-actions { display: flex; align-items: center; gap: 20px; }
+    .qty-selector { display: flex; align-items: center; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+    .qty-selector button { background: #f9f9f9; border: none; width: 30px; height: 30px; cursor: pointer; font-weight: bold; color: #555; }
+    .qty-selector input { width: 40px; text-align: center; border: none; font-weight: bold; color: var(--primary-color); -moz-appearance: textfield; }
+    .item-total { font-weight: bold; color: var(--primary-color); font-size: 1.1rem; min-width: 80px; text-align: right; }
+    .btn-remove { background: none; border: none; color: #ccc; cursor: pointer; font-size: 1.2rem; transition: color 0.3s; padding: 5px; }
+    .btn-remove:hover { color: var(--error-color); }
+    .cart-summary { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); position: sticky; top: 100px; border: 1px solid #f0f0f0; }
+    .cart-summary h2 { font-size: 1.5rem; margin-top: 0; margin-bottom: 25px; color: var(--secondary-color); }
+    .summary-row { display: flex; justify-content: space-between; margin-bottom: 15px; color: #666; }
+    .free { color: var(--success-color); font-weight: bold; }
+    .divider { height: 1px; background: #eee; margin: 20px 0; }
+    .total { font-size: 1.4rem; font-weight: 800; color: var(--primary-color); margin-bottom: 25px; }
+    .btn-checkout { display: block; width: 100%; background: var(--accent-color); color: white; text-align: center; padding: 15px; border-radius: 50px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s; box-shadow: 0 5px 15px rgba(212, 163, 115, 0.4); text-decoration: none; box-sizing: border-box; }
+    .btn-checkout:hover { background: var(--primary-color); transform: translateY(-2px); }
+    .secure-text { text-align: center; font-size: 0.8rem; color: #999; margin-top: 15px; }
+    @media (max-width: 900px) { .cart-layout { grid-template-columns: 1fr; } .cart-item { flex-wrap: wrap; gap: 15px; } .item-actions { width: 100%; justify-content: space-between; margin-top: 10px; } }
+  `]
+})
+export class CartComponent {
+  cart = inject(CartService);
+  updateQuantity(id: string, qty: number) { this.cart.updateQuantity(id, qty); }
+  onQtyChange(id: string, event: any) { const val = parseInt(event.target.value, 10); this.updateQuantity(id, val); }
+}
+
+------------------------------
+📄 Fichier : src/app/pages/login/login.component.ts
+------------------------------
+import { Component, signal, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+
+@Component({
+  selector: 'app-login', standalone: true, imports: [CommonModule, FormsModule, RouterLink],
+  template: `
+    <div class="auth-bg"><div class="auth-overlay"></div><div class="auth-card">
+        <div style="text-align:center"><h2>Connexion</h2><p>Bon retour parmi nous</p></div>
+        <form (ngSubmit)="login()">
+            <div class="form-group"><label>Email</label><input type="email" [(ngModel)]="email" name="email" class="input-modern"></div>
+            <div class="form-group"><label>Mot de passe</label><input type="password" [(ngModel)]="password" name="pass" class="input-modern"></div>
+            <p *ngIf="error()" class="error-msg">{{ error() }}</p>
+            <button type="submit" class="btn-submit">Se connecter</button>
+        </form>
+        <div style="margin:20px 0;text-align:center;border-bottom:1px solid #eee;line-height:0.1em"><span>OU</span></div>
+        <button (click)="google()" class="google-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google.png" width="20"> Google</button>
+        <button (click)="facebook()" class="google-btn" style="margin-top:10px;background:#1877F2;color:white;border:none">Facebook</button>
+        <p style="text-align:center;margin-top:20px">Pas de compte ? <a routerLink="/signup">S'inscrire</a></p>
+    </div></div>
+  `
+})
+export class LoginComponent {
+  email = ''; password = ''; error = signal(''); loading = signal(false); auth = inject(AuthService); router = inject(Router);
+  async login() { try { await this.auth.signIn(this.email, this.password); this.router.navigate(['/']); } catch(e:any) { this.error.set("Erreur login"); } }
+  async google() { try { await this.auth.signInWithGoogle(); this.router.navigate(['/']); } catch(e:any) { this.error.set("Erreur Google"); } }
+  async facebook() { try { await this.auth.signInWithFacebook(); this.router.navigate(['/']); } catch(e:any) { this.error.set("Erreur Facebook"); } }
+}
+
+------------------------------
+📄 Fichier : src/app/services/auth.service.ts
+------------------------------
+import { Injectable, signal } from '@angular/core';
+import { initializeApp } from "firebase/app";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, User } from "firebase/auth";
+import { environment } from '../../environments/environment';
+
+const app = initializeApp(environment.firebaseConfig);
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
+const facebookProvider = new FacebookAuthProvider();
+
+@Injectable({ providedIn: 'root' })
+export class AuthService {
+  private ADMIN_EMAIL = 'litaliano@gmail.com';
+  currentUser = signal<User | null>(null);
+  isAdmin = signal(false);
+  isAuthenticated = signal(false);
+
+  constructor() {
+    onAuthStateChanged(auth, (user) => {
+      this.currentUser.set(user);
+      this.isAuthenticated.set(!!user);
+      this.isAdmin.set(user?.email === this.ADMIN_EMAIL);
+    });
+  }
+
+  async signIn(email: string, pass: string) { return signInWithEmailAndPassword(auth, email, pass); }
+  async signInWithGoogle() { return signInWithPopup(auth, googleProvider); }
+  async signInWithFacebook() { return signInWithPopup(auth, facebookProvider); }
+  async signUp(email: string, pass: string) { return createUserWithEmailAndPassword(auth, email, pass); }
+  async signOut() { return signOut(auth); }
+}
+
+------------------------------
+📄 Fichier : src/app/services/cart.service.ts
+------------------------------
+import { Injectable, signal, computed } from '@angular/core';
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { environment } from '../../environments/environment';
+
+const app = initializeApp(environment.firebaseConfig);
+const db = getFirestore(app);
+export interface CartItem { id: string; name: string; price: number; quantity: number; imageUrl: string; }
+
+@Injectable({ providedIn: 'root' })
+export class CartService {
+  cartItems = signal<CartItem[]>([]);
+  subTotal = computed(() => this.cartItems().reduce((acc, i) => acc + (i.price * i.quantity), 0));
+  itemCount = computed(() => this.cartItems().reduce((acc, i) => acc + i.quantity, 0));
+
+  constructor() { if(typeof localStorage !== 'undefined') { const s = localStorage.getItem('cart'); if(s) this.cartItems.set(JSON.parse(s)); } }
+  save() { if(typeof localStorage !== 'undefined') localStorage.setItem('cart', JSON.stringify(this.cartItems())); }
+  
+  addItem(p: any, q: number = 1) {
+    this.cartItems.update(i => {
+      const x = i.find(z => z.id === p.id);
+      if(x) x.quantity += q; else i.push({id:p.id, name:p.name, price:Number(p.price), quantity:q, imageUrl:p.imageUrl});
+      return [...i];
+    }); this.save();
+  }
+  removeItem(id: string) { this.cartItems.update(i => i.filter(x => x.id !== id)); this.save(); }
+  updateQuantity(id: string, q: number) {
+    if(q<=0) return this.removeItem(id);
+    this.cartItems.update(i => { const x = i.find(z => z.id === id); if(x) x.quantity = q; return [...i]; }); this.save();
+  }
+  async checkout(d: any) {
+    if(this.cartItems().length === 0) return;
+    await addDoc(collection(db, 'orders'), {customer:d, items:this.cartItems(), total:this.subTotal(), date:serverTimestamp(), status:'En cours'});
+    this.cartItems.set([]); this.save();
+  }
+}
+
+------------------------------
+📄 Fichier : src/app/app.scss
+------------------------------
+
+------------------------------
+📄 Fichier : src/main.ts
+------------------------------
+import { bootstrapApplication } from '@angular/platform-browser';
+import { appConfig } from './app/app.config';
+import { AppComponent } from './app/app.component';
+bootstrapApplication(AppComponent, appConfig).catch((err) => console.error(err));
+
+------------------------------
+📄 Fichier : src/environments/environment.ts
+------------------------------
+export const environment = {
+  production: false,
+  firebaseConfig: {
+    apiKey: "AIzaSyDi-5L4KuACVhksL29QHvElX5t4eZTr_Zs",
+    authDomain: "litalianocoffee.firebaseapp.com",
+    projectId: "litalianocoffee",
+    storageBucket: "litalianocoffee.firebasestorage.app",
+    messagingSenderId: "846586154136",
+    appId: "1:846586154136:web:04171c50dc8777aa9654ed",
+    measurementId: "G-VDHDFEHDSV"
+  },
+  supabaseConfig: {
+    // CLÉ SECRÈTE UTILISÉE TEMPORAIREMENT POUR LE DÉVELOPPEMENT. DOIT ÊTRE REMPLACÉE PAR LA CLÉ PUBLIQUE + RLS EN PROD.
+    url: 'https://qailxxltsofkgtfkgzhv.supabase.co',
+    key: 'sb_secret_Qxw6yEx9L0hDSNg6uZo4Yg_GvmWX68x',
+    bucket: 'propositionspourkerkennah'
+  }
+};
+
+------------------------------
+📄 Fichier : src/styles.scss
+------------------------------
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap');
+
+:root {
+  --primary-color: #6f4e37; --secondary-color: #2c3e50; --accent-color: #d4a373;
+  --text-color: #333; --header-bg: #2c3e50; --header-text: #ffffff;
+  --light-bg: #f9f9f9; --error-color: #e74c3c; --success-color: #2ecc71;
+}
+
+body, html { margin: 0; padding: 0; font-family: 'Lato', sans-serif; color: var(--text-color); background-color: var(--light-bg); overflow-x: hidden; }
+h1, h2, h3, h4 { font-family: 'Playfair Display', serif; margin-bottom: 1rem; }
+button { cursor: pointer; transition: all 0.3s ease; }
+input, select { outline: none; }
+
+.page-container { padding: 100px 20px 50px; max-width: 1400px; margin: 0 auto; min-height: 80vh; }
+.page-container h1 { font-size: 3rem; color: var(--primary-color); border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; margin-bottom: 30px; }
+
+/* UI Components */
+.input-modern { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; transition: 0.3s; }
+.input-modern:focus { border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(212,163,115,0.2); }
+.btn-primary { background: var(--primary-color); color: white; padding: 12px 25px; border: none; border-radius: 50px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+.btn-submit { @extend .btn-primary; width: 100%; margin-top: 10px; }
+
+/* Auth Styles */
+.auth-bg { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=2000') center/cover; position: relative; padding: 20px; }
+.auth-overlay { position: absolute; inset: 0; background: rgba(43,29,22,0.6); backdrop-filter: blur(5px); }
+.auth-card { position: relative; z-index: 2; background: white; padding: 50px 40px; border-radius: 20px; width: 100%; max-width: 450px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; font-weight: bold; margin-bottom: 8px; color: var(--primary-color); }
+.error-msg { color: var(--error-color); background: #fadbd8; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 15px; }
+
