@@ -1,222 +1,245 @@
 #!/bin/bash
 
 echo "==================================================="
-echo "🛠️  CORRECTIF: HEADER & MENU RESPONSIVE (Net & Cliquable)"
+echo "📦 MISE À JOUR : AFFICHAGE COMMENTAIRE CLIENT"
 echo "==================================================="
 
-cat > src/app/components/header/header.component.ts <<'EOF'
-import { Component, HostListener, inject, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive, Router } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
-import { CartService } from '../../services/cart.service';
+cat > src/app/pages/admin/orders/orders.component.ts <<'EOF'
+import { Component, OnInit, signal } from '@angular/core';
+import { CommonModule, DatePipe, CurrencyPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, onSnapshot, query, orderBy, doc, updateDoc } from "firebase/firestore";
+import { environment } from '../../../../environments/environment';
+
+const app = initializeApp(environment.firebaseConfig);
+const db = getFirestore(app);
 
 @Component({
-  selector: 'app-header',
+  selector: 'app-orders',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, FormsModule, DatePipe, CurrencyPipe],
   template: `
-    <header [class.scrolled]="isScrolled()">
-      <!-- Parallax Wrapper (Background uniquement) -->
-      <div class="parallax-wrapper">
-        <div class="parallax-container">
-            <div class="parallax-layer layer-back" [style.transform]="'translateY(' + scrollY() * 0.2 + 'px)'"></div>
-            <div class="parallax-layer layer-mid" [style.transform]="'translateY(' + scrollY() * 0.4 + 'px)'"></div>
-            <div class="parallax-layer layer-front" [style.transform]="'translateY(' + scrollY() * 0.6 + 'px)'"></div>
-        </div>
+    <div class="page-container">
+      <div class="header-section">
+        <h1>📦 Gestion des Commandes</h1>
+        <p class="subtitle">Suivi en temps réel des achats clients</p>
       </div>
 
-      <!-- Contenu du Header -->
-      <div class="container header-content" [style.transform]="'translateY(' + scrollY() * -0.1 + 'px)'">
-        
-        <div class="logo" routerLink="/">
-            <span class="icon">☕</span>
-            <div class="text">
-                <span class="brand">L'ITALIANO</span>
-                <span class="suffix">COFFEE</span>
-            </div>
+      @if (orders().length === 0) {
+        <div class="empty-state">
+            <p>Aucune commande pour le moment.</p>
         </div>
-        
-        <!-- Bouton Hamburger -->
-        <button class="mobile-toggle" (click)="toggleMenu()" [class.open]="isMenuOpen()">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
+      } @else {
+        <div class="orders-grid">
+          @for (o of orders(); track o.id) {
+            <div class="order-card" [class]="'status-border-' + getStatusClass(o.status)">
+                <!-- En-tête de la carte -->
+                <div class="card-header">
+                    <div class="order-id">
+                        <span class="hash">#</span>{{ o.id.slice(0, 8) }}
+                    </div>
+                    <div class="order-date">
+                        {{ o.date?.toDate() | date:'dd MMM, HH:mm' }}
+                    </div>
+                </div>
 
-        <!-- Navigation -->
-        <nav [class.mobile-open]="isMenuOpen()">
-          <ul>
-            <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" (click)="closeMenu()">Accueil</a></li>
-            <li><a routerLink="/products" routerLinkActive="active" (click)="closeMenu()">Nos Cafés</a></li>
-            <li><a routerLink="/contact" routerLinkActive="active" (click)="closeMenu()">Contact</a></li>
-            
-            <!-- Liens Mobile -->
-            <li class="mobile-only"><a routerLink="/cart" (click)="closeMenu()">Panier ({{ cart.itemCount() }})</a></li>
-            @if (auth.isAuthenticated()) {
-                <li class="mobile-only"><button (click)="logout(); closeMenu()" class="nav-btn">Déconnexion</button></li>
-            } @else {
-                <li class="mobile-only"><a routerLink="/login" (click)="closeMenu()">Connexion</a></li>
-            }
-          </ul>
-        </nav>
-        
-        <!-- Actions Desktop -->
-        <div class="actions desktop-only">
-            <a routerLink="/cart" class="cart-btn" [class.has-items]="cart.itemCount() > 0">
-                <span class="cart-icon">🛒</span>
-                <span class="cart-count" *ngIf="cart.itemCount() > 0">{{ cart.itemCount() }}</span>
-            </a>
-            <div class="auth-buttons">
-                @if (auth.isAdmin()) { <a routerLink="/admin" class="admin-link">Admin</a> }
-                @if (auth.isAuthenticated()) { <button (click)="logout()" class="logout-btn">✕</button> } 
-                @else { <a routerLink="/login" class="login-link">Login</a> }
+                <!-- Infos Client -->
+                <div class="customer-section">
+                    <div class="info-row">
+                        <span class="icon">👤</span> 
+                        <span class="name">{{ o.customer.name }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="icon">📞</span> 
+                        <a [href]="'tel:' + o.customer.phone" class="phone">{{ o.customer.phone }}</a>
+                    </div>
+                    <div class="info-row address-row">
+                        <span class="icon">📍</span> 
+                        <span class="address">{{ o.customer.address }}</span>
+                    </div>
+                </div>
+
+                <!-- Commentaire Client (AJOUTÉ ICI) -->
+                @if (o.comment) {
+                    <div class="comment-section">
+                        <span class="comment-icon">💬</span>
+                        <div class="comment-content">
+                            <span class="comment-label">Note du client :</span>
+                            <p>“{{ o.comment }}”</p>
+                        </div>
+                    </div>
+                }
+
+                <!-- Liste des Articles -->
+                <div class="items-section">
+                    <h4>Articles ({{ o.items.length }})</h4>
+                    <ul>
+                        <li *ngFor="let item of o.items">
+                            <span class="qty">{{ item.quantity }}x</span>
+                            <span class="prod-name">{{ item.name }}</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Footer : Total & Action -->
+                <div class="card-footer">
+                    <div class="total-price">
+                        <span class="label">Total</span>
+                        <span class="amount">{{ o.total | number:'1.2-2' }} DT</span>
+                    </div>
+                    
+                    <div class="status-control">
+                        <select 
+                            [ngModel]="o.status" 
+                            (ngModelChange)="updateStatus(o.id, $event)"
+                            [class]="'select-' + getStatusClass(o.status)"
+                        >
+                            <option value="En cours">⏳ En cours</option>
+                            <option value="Livrée">✅ Livrée</option>
+                            <option value="Annulée">❌ Annulée</option>
+                        </select>
+                    </div>
+                </div>
             </div>
+          }
         </div>
-      </div>
-      
-      <!-- Overlay sombre -->
-      <div class="menu-overlay" *ngIf="isMenuOpen()" (click)="closeMenu()"></div>
-    </header>
+      }
+    </div>
   `,
   styles: [`
-    /* --- HEADER PRINCIPAL --- */
-    header { 
-        position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; 
-        height: 140px; transition: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); 
-        background: transparent; border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    header.scrolled { 
-        height: 70px; 
-        background: #2c3e50; /* Fond opaque au scroll */
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
+    /* Layout */
+    .page-container { max-width: 1200px; margin: 0 auto; padding: 120px 20px; }
+    .header-section { margin-bottom: 40px; text-align: center; }
+    h1 { color: var(--primary-color); font-size: 2.5rem; margin-bottom: 10px; }
+    .subtitle { color: #666; font-size: 1.1rem; }
+
+    /* Grid */
+    .orders-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 30px;
     }
 
-    /* --- PARALLAX (Désactivé visuellement au scroll) --- */
-    .parallax-wrapper { position: absolute; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
-    .parallax-container { position: absolute; inset: 0; }
-    .parallax-layer { position: absolute; inset: -10% 0; background-size: cover; will-change: transform; transition: opacity 0.4s; }
-    .layer-back { background-image: url('/assets/slider1.png'); opacity: 0.3; filter: blur(2px); }
-    .layer-mid { background-image: url('/assets/cat_grains.jpg'); opacity: 0.15; }
-    .layer-front { background-image: none; }
-    header.scrolled .parallax-layer { opacity: 0; }
-
-    /* --- CONTENU --- */
-    .header-content { 
-        position: relative; z-index: 100; height: 100%; 
-        display: flex; justify-content: space-between; align-items: flex-start; 
-        padding: 20px 30px; 
-        will-change: transform;
+    /* Card Design */
+    .order-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        border: 1px solid #f0f0f0;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.3s, box-shadow 0.3s;
     }
+    .order-card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.1); }
 
-    header.scrolled .header-content { align-items: center; padding: 0 30px; }
-    
-    .container { max-width: 1400px; margin: 0 auto; }
+    /* Status Borders */
+    .status-border-warning { border-top: 5px solid #f1c40f; } /* En cours */
+    .status-border-success { border-top: 5px solid #2ecc71; } /* Livrée */
+    .status-border-danger { border-top: 5px solid #e74c3c; } /* Annulée */
 
-    /* --- LOGO --- */
-    .logo { display: flex; align-items: center; gap: 10px; cursor: pointer; color: white; pointer-events: auto; z-index: 1100; }
-    .logo .icon { font-size: 2rem; } 
-    .brand { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.2rem; } 
-    .suffix { font-size: 0.7rem; color: var(--accent-color); display: block; letter-spacing: 2px; }
+    /* Header Card */
+    .card-header {
+        padding: 15px 20px;
+        background: #fcfcfc;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .order-id { font-weight: 800; color: var(--secondary-color); font-family: monospace; font-size: 1.1rem; }
+    .hash { color: #ccc; }
+    .order-date { font-size: 0.85rem; color: #888; }
 
-    /* --- NAVIGATION DESKTOP --- */
-    nav ul { list-style: none; display: flex; gap: 30px; margin: 0; padding: 0; }
-    nav a { 
-        color: rgba(255,255,255,0.9); text-decoration: none; text-transform: uppercase; 
-        font-size: 0.9rem; font-weight: 500; transition: color 0.3s; cursor: pointer; pointer-events: auto; 
-    }
-    nav a:hover, nav a.active { color: var(--accent-color); }
-    
-    .nav-btn {
-        background: none; border: none; color: inherit; font: inherit; text-transform: uppercase; cursor: pointer;
-    }
+    /* Customer Section */
+    .customer-section { padding: 20px; border-bottom: 1px solid #f5f5f5; }
+    .info-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; color: #444; }
+    .info-row:last-child { margin-bottom: 0; }
+    .icon { font-size: 1.1rem; width: 20px; text-align: center; }
+    .name { font-weight: bold; color: var(--primary-color); }
+    .phone { color: var(--accent-color); text-decoration: none; font-weight: 500; }
+    .phone:hover { text-decoration: underline; }
+    .address-row { align-items: flex-start; }
+    .address { font-size: 0.9rem; line-height: 1.4; color: #666; }
 
-    /* --- ACTIONS (Desktop) --- */
-    .actions { display: flex; align-items: center; gap: 20px; pointer-events: auto; }
-    .login-link { color: white; border: 1px solid rgba(255,255,255,0.5); padding: 6px 15px; border-radius: 30px; font-size: 0.8rem; }
-    .logout-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 1.2rem; } 
-    .admin-link { color: #f1c40f; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; }
-    .cart-btn { color: white; font-size: 1.2rem; position: relative; } 
-    .cart-count { position: absolute; top: -8px; right: -8px; background: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; }
-    
-    /* --- MOBILE STYLES --- */
-    .mobile-toggle { 
-        display: none; flex-direction: column; gap: 5px; 
-        background: none; border: none; cursor: pointer; 
-        z-index: 1200; padding: 10px; pointer-events: auto; 
+    /* --- STYLE COMMENTAIRE --- */
+    .comment-section {
+        background-color: #fff8e1; /* Fond jaune pâle type Post-it */
+        padding: 15px 20px;
+        border-top: 1px dashed #eee;
+        border-bottom: 1px dashed #eee;
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
     }
-    .mobile-toggle span { 
-        display: block; width: 25px; height: 3px; background-color: white; 
-        transition: 0.3s; border-radius: 2px; 
-    }
-    
-    /* Animation Hamburger */
-    .mobile-toggle.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 6px); background-color: var(--accent-color); }
-    .mobile-toggle.open span:nth-child(2) { opacity: 0; }
-    .mobile-toggle.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -6px); background-color: var(--accent-color); }
-    
-    .mobile-only { display: none; } 
-    .menu-overlay { 
-        display: none; 
-        position: fixed; inset: 0; 
-        background: rgba(0,0,0,0.7); /* Plus sombre mais net */
-        z-index: 1050; 
-        /* backdrop-filter: blur(3px); SUPPRIMÉ POUR ÉVITER LE FLOU */
-    }
+    .comment-icon { font-size: 1.2rem; }
+    .comment-content { flex: 1; }
+    .comment-label { display: block; font-size: 0.75rem; text-transform: uppercase; color: #8d6e63; font-weight: bold; margin-bottom: 3px; }
+    .comment-section p { margin: 0; font-style: italic; color: #5d4037; font-size: 0.95rem; line-height: 1.4; }
 
-    @media (max-width: 768px) {
-        .desktop-only { display: none; } 
-        .mobile-toggle { display: flex; } 
-        
-        /* -- CORRECTIF CRITIQUE -- */
-        /* On force le reset des transforms sur mobile pour que position:fixed fonctionne par rapport au viewport */
-        .header-content { 
-            transform: none !important; 
-            will-change: auto !important; 
-        }
-        
-        header { height: 80px; overflow: visible !important; } /* Overflow visible pour laisser sortir le menu */
-        header.scrolled { height: 70px; }
-        .header-content { padding: 10px 20px; align-items: center; }
+    /* Items Section */
+    .items-section { padding: 15px 20px; flex-grow: 1; background: #fff; }
+    .items-section h4 { margin: 0 0 10px; font-size: 0.8rem; text-transform: uppercase; color: #aaa; letter-spacing: 1px; }
+    .items-section ul { padding: 0; margin: 0; list-style: none; }
+    .items-section li { display: flex; gap: 10px; margin-bottom: 6px; font-size: 0.95rem; }
+    .qty { font-weight: bold; color: var(--secondary-color); background: #eee; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; }
+    .prod-name { color: #333; }
 
-        /* Menu Mobile */
-        nav {
-            position: fixed; top: 0; right: -100%; width: 75%; height: 100vh; 
-            background: #2c3e50; padding: 100px 30px; 
-            transition: right 0.3s ease-in-out; 
-            z-index: 1100; 
-            box-shadow: -5px 0 20px rgba(0,0,0,0.5); 
-            display: block !important; 
-        }
-        nav.mobile-open { right: 0; } 
-        
-        nav ul { flex-direction: column; gap: 25px; } 
-        nav a, .nav-btn { font-size: 1.2rem; display: block; padding: 10px 0; color: white; text-align: left; width: 100%; }
-        
-        .mobile-only { display: block; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; margin-top: 10px; }
-        .menu-overlay { display: block; }
+    /* Footer Card */
+    .card-footer {
+        padding: 20px;
+        background: #fafafa;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
+    .total-price { display: flex; flex-direction: column; }
+    .total-price .label { font-size: 0.8rem; color: #888; text-transform: uppercase; }
+    .total-price .amount { font-size: 1.5rem; font-weight: 800; color: var(--secondary-color); }
+
+    /* Select Styling */
+    select {
+        padding: 8px 15px;
+        border-radius: 20px;
+        border: 1px solid #ddd;
+        font-weight: bold;
+        cursor: pointer;
+        outline: none;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+    }
+    .select-warning { background: #fff8e1; color: #f39c12; border-color: #f39c12; }
+    .select-success { background: #e8f8f5; color: #27ae60; border-color: #27ae60; }
+    .select-danger { background: #fdedec; color: #c0392b; border-color: #c0392b; }
+
+    .empty-state { text-align: center; color: #999; font-size: 1.2rem; margin-top: 50px; }
   `]
 })
-export class HeaderComponent {
-  scrollY = signal(0);
-  isMenuOpen = signal(false);
+export class OrdersComponent implements OnInit {
+  orders = signal<any[]>([]);
   
-  isScrolled = computed(() => this.scrollY() > 50);
-  auth = inject(AuthService);
-  cart = inject(CartService);
-  private router = inject(Router);
-
-  @HostListener('window:scroll', []) onScroll() { 
-    this.scrollY.set(window.scrollY); 
+  ngOnInit() {
+    onSnapshot(query(collection(db,"orders"), orderBy("createdAt","desc")), s => {
+        this.orders.set(s.docs.map(d => {
+            const data = d.data();
+            const date = data['createdAt'] ? data['createdAt'] : data['date'];
+            return { id:d.id, ...data, date };
+        }));
+    });
   }
   
-  toggleMenu() { this.isMenuOpen.update(v => !v); }
-  closeMenu() { this.isMenuOpen.set(false); }
+  updateStatus(id: string, status: string) { 
+      updateDoc(doc(db, "orders", id), { status }); 
+  }
 
-  async logout() {
-    await this.auth.signOut();
-    this.router.navigate(['/']);
+  getStatusClass(status: string): string {
+      if (status === 'Livrée') return 'success';
+      if (status === 'Annulée') return 'danger';
+      return 'warning';
   }
 }
 EOF
+
+echo "✅ Commentaires clients ajoutés à l'interface Admin !"
